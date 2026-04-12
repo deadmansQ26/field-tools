@@ -102,4 +102,130 @@
     <div class="settings-card">
       <h3 style="margin-top:0">項目名の設定</h3>
       <div id="settingsGrid" style="display:grid; gap:8px;"></div>
-      <div style="display:grid
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+        <button id="cancelSettingsBtn" class="head-btn" style="height:44px;">戻る</button>
+        <button id="closeSettingsBtn" class="btn btn-camera" style="height:44px; font-size:0.9rem; font-weight:bold;">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cameraLayer" class="camera-layer">
+    <video id="cameraView" autoplay playsinline muted></video>
+    <div class="shutter-box"></div>
+    <div style="position:fixed; bottom:40px; display:flex; gap:10px; width:100%; padding:0 20px;">
+      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:54px;"><div class="x-icon"></div></button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:54px; font-weight:bold; font-size:1.1rem;">読込</button>
+    </div>
+    <canvas id="captureCanvas" style="display:none;"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    (() => {
+      const ITEM_COUNT = 10;
+      let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
+      const itemList = document.getElementById("itemList");
+      
+      const currentURL = window.location.href;
+      document.getElementById("urlText").textContent = currentURL;
+      new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 120, height: 120 });
+
+      function render() {
+        itemList.innerHTML = "";
+        itemNames.forEach((name, i) => {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <div class="item-title">${name}</div>
+            <div class="controls">
+              <input type="text" id="val-${i}" inputmode="decimal" placeholder="0">
+              <button class="btn btn-camera" onclick="openCam(${i})"><div class="cam-icon"></div></button>
+              <button class="btn btn-clear" onclick="document.getElementById('val-${i}').value=''"><div class="x-icon"></div></button>
+            </div>
+          `;
+          itemList.appendChild(div);
+        });
+      }
+
+      document.getElementById("toggleThemeBtn").onclick = () => document.body.classList.toggle("dark-mode");
+
+      document.getElementById("openSettingsBtn").onclick = () => {
+        const grid = document.getElementById("settingsGrid");
+        grid.innerHTML = "";
+        itemNames.forEach((name, i) => {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = name;
+          input.style.padding = "10px";
+          input.style.border = "1px solid var(--border)";
+          input.style.borderRadius = "6px";
+          input.style.background = "var(--input-bg)";
+          input.style.color = "var(--text)";
+          input.oninput = (e) => { itemNames[i] = e.target.value; };
+          grid.appendChild(input);
+        });
+        document.getElementById("settingsLayer").style.display = "flex";
+      };
+
+      document.getElementById("closeSettingsBtn").onclick = () => {
+        localStorage.setItem('genba_names', JSON.stringify(itemNames));
+        document.getElementById("settingsLayer").style.display = "none";
+        render();
+      };
+
+      document.getElementById("cancelSettingsBtn").onclick = () => {
+        itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
+        document.getElementById("settingsLayer").style.display = "none";
+        render();
+      };
+
+      document.getElementById("clearAllBtn").onclick = () => {
+        if(confirm("全ての数値を消去しますか？")) {
+          for(let i=0; i<ITEM_COUNT; i++) {
+            const el = document.getElementById(`val-${i}`);
+            if(el) el.value = "";
+          }
+        }
+      };
+
+      let activeIdx = null;
+      let stream = null;
+      window.openCam = async (idx) => {
+        activeIdx = idx;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          document.getElementById("cameraView").srcObject = stream;
+          document.getElementById("cameraLayer").style.display = "flex";
+        } catch (e) { alert("カメラにアクセスできません"); }
+      };
+
+      const stopCamera = () => {
+        if(stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById("cameraLayer").style.display = "none";
+      };
+      document.getElementById("cancelBtn").onclick = stopCamera;
+
+      document.getElementById("shotBtn").onclick = async () => {
+        const video = document.getElementById("cameraView");
+        const canvas = document.getElementById("captureCanvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        
+        document.getElementById("shotBtn").textContent = "解析中";
+        try {
+          const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+          const num = text.replace(/[^0-9.]/g, "").match(/\d+(\.\d+)?/);
+          if(num) document.getElementById(`val-${activeIdx}`).value = num[0];
+        } catch (e) {}
+        
+        document.getElementById("shotBtn").textContent = "読込";
+        stopCamera();
+      };
+
+      render();
+    })();
+  </script>
+</body>
+</html>
