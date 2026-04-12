@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>現場レコーダー(画像版)</title>
+  <title>現場レコーダー(画像版V2)</title>
   
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='5' fill='%23f0f6fc' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='35' x2='75' y2='35' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='55' x2='75' y2='55' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='75' x2='55' y2='75' stroke='%2330363d' stroke-width='5'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='15' fill='%23ffffff'/><rect x='20' y='25' width='60' height='55' rx='2' fill='none' stroke='%23000' stroke-width='6'/><line x1='30' y1='40' x2='70' y2='40' stroke='%23000' stroke-width='6'/><line x1='30' y1='55' x2='70' y2='55' stroke='%23000' stroke-width='6'/><line x1='30' y1='70' x2='55' y2='70' stroke='%23000' stroke-width='6'/><rect x='40' y='10' width='20' height='10' rx='2' fill='%23333'/></svg>">
@@ -23,11 +23,6 @@
     html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
     body { padding: 10px; min-height: 100dvh; }
 
-    /* 横向き時のUI回転抑制（簡易版） */
-    @media (orientation: landscape) {
-      .app { transform: none; }
-    }
-
     .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
     
@@ -38,30 +33,32 @@
 
     .list-wrap { display: flex; flex-direction: column; gap: 8px; }
     .item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; position: relative; }
-    .item-title { font-size: 1rem; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .item-title { font-size: 1rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
     
+    /* 写真エリアを拡大 */
     .photo-area { 
-      width: 100%; height: 110px; background: var(--input-bg); border: 1px solid var(--border); 
-      border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;
+      width: 100%; height: 180px; background: var(--input-bg); border: 1px solid var(--border); 
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px;
     }
     .photo-area img { width: 100%; height: 100%; object-fit: contain; }
     
-    .controls { display: grid; grid-template-columns: 1fr 60px 45px; gap: 8px; height: 45px; }
-    .memo-input { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; font-size: 0.85rem; }
+    .controls { display: grid; grid-template-columns: 1fr 65px 50px; gap: 8px; height: 48px; }
+    .memo-input { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; font-size: 0.9rem; }
 
     .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .btn-camera { background: var(--primary); color: white; }
-    .cam-icon { width: 22px; height: 16px; border: 2px solid white; border-radius: 3px; position: relative; }
-    .cam-icon::before { content: ""; position: absolute; top: -5px; left: 5px; width: 8px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
-    .btn-clear { background: var(--danger); color: white; opacity: 0.8; }
-    .x-icon { position: relative; width: 16px; height: 16px; }
-    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 7px; left: 0; width: 16px; height: 2px; background: white; transform: rotate(45deg); }
+    .cam-icon { width: 24px; height: 18px; border: 2px solid white; border-radius: 3px; position: relative; }
+    .cam-icon::before { content: ""; position: absolute; top: -5px; left: 6px; width: 8px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
+    .btn-clear { background: var(--danger); color: white; opacity: 0.9; }
+    .x-icon { position: relative; width: 18px; height: 18px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 8px; left: 0; width: 18px; height: 2px; background: white; transform: rotate(45deg); }
     .x-icon::after { transform: rotate(-45deg); }
 
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     video { width: 100%; max-height: 100dvh; }
-    .shutter-box { position: absolute; width: 300px; height: 120px; border: 2px solid #58a6ff; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.7); border-radius: 4px; }
-    .shutter-box::after { content: "メーターを枠内に"; position: absolute; top: -25px; left: 0; color: #58a6ff; font-size: 0.8rem; font-weight: bold; }
+    /* ガイド枠を大きく調整 */
+    .shutter-box { position: absolute; width: 320px; height: 150px; border: 3px solid #58a6ff; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.7); border-radius: 6px; }
+    .shutter-box::after { content: "メーターを中央に"; position: absolute; top: -30px; left: 0; color: #58a6ff; font-size: 0.9rem; font-weight: bold; }
     
     .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
     .settings-card { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 450px; margin: auto; }
@@ -110,7 +107,6 @@
       let db = null;
       let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
 
-      // IndexedDB初期化
       const request = indexedDB.open("GenbaRecorderDB", 1);
       request.onupgradeneeded = (e) => {
         db = e.target.result;
@@ -125,7 +121,6 @@
 
       async function initApp() {
         render();
-        // 初期読込
         for (let i = 0; i < ITEM_COUNT; i++) {
           const data = await getDBItem(i);
           if (data) {
@@ -156,7 +151,6 @@
         });
       }
 
-      // DB操作
       function getDBItem(id) {
         return new Promise(resolve => {
           const tx = db.transaction("items", "readonly");
@@ -179,15 +173,14 @@
 
       window.saveMemo = (i, val) => saveDBItem(i, { memo: val });
 
+      // 個別クリアから確認メッセージをパージ
       window.clearItem = async (i) => {
-        if(confirm(`項目 ${i+1} を消去しますか？`)) {
-          const tx = db.transaction("items", "readwrite");
-          tx.objectStore("items").delete(i);
-          tx.oncomplete = () => {
-            document.getElementById(`memo-${i}`).value = "";
-            document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">タップして撮影</span>`;
-          };
-        }
+        const tx = db.transaction("items", "readwrite");
+        tx.objectStore("items").delete(i);
+        tx.oncomplete = () => {
+          document.getElementById(`memo-${i}`).value = "";
+          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">タップして撮影</span>`;
+        };
       };
 
       function updatePhotoUI(i, dataUrl) {
@@ -195,7 +188,6 @@
         if(area) area.innerHTML = `<img src="${dataUrl}">`;
       }
 
-      // 設定・テーマ
       document.getElementById("toggleThemeBtn").onclick = () => document.body.classList.toggle("dark-mode");
       document.getElementById("openSettingsBtn").onclick = () => {
         const grid = document.getElementById("settingsGrid");
@@ -221,14 +213,13 @@
         document.getElementById("settingsLayer").style.display = "none";
       };
       document.getElementById("clearAllBtn").onclick = () => {
-        if(confirm("全項目の画像とメモを完全に消去しますか？")) {
+        if(confirm("全データを消去しますか？")) {
           const tx = db.transaction("items", "readwrite");
           tx.objectStore("items").clear();
           tx.oncomplete = () => location.reload();
         }
       };
 
-      // カメラロジック
       let activeIdx = null;
       let stream = null;
       window.openCam = async (idx) => {
@@ -253,7 +244,6 @@
         const canvas = document.getElementById("captureCanvas");
         const ctx = canvas.getContext("2d");
 
-        // ガイド枠の位置計算
         const vRect = video.getBoundingClientRect();
         const sRect = document.querySelector('.shutter-box').getBoundingClientRect();
         
@@ -265,8 +255,8 @@
         const cropW = sRect.width * scaleX;
         const cropH = sRect.height * scaleY;
 
-        // 解像度抑制（横幅600px）
-        const targetW = 600;
+        // 解像度は維持しつつ横幅を確保（800pxに微増）
+        const targetW = 800;
         const targetH = (sRect.height / sRect.width) * targetW;
         
         canvas.width = targetW;
@@ -274,17 +264,12 @@
         
         ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
         saveDBItem(activeIdx, { photo: dataUrl });
         updatePhotoUI(activeIdx, dataUrl);
         
         stopCamera();
       };
-
-      // 画面回転時のスクロール補正
-      window.addEventListener("orientationchange", () => {
-        setTimeout(() => window.scrollTo(0, 0), 200);
-      });
 
     })();
   </script>
