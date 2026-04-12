@@ -2,73 +2,66 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>現場レコーダー</title>
+  <title>現場レコーダー(画像版)</title>
   
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='5' fill='%23f0f6fc' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='35' x2='75' y2='35' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='55' x2='75' y2='55' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='75' x2='55' y2='75' stroke='%2330363d' stroke-width='5'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='15' fill='%23ffffff'/><rect x='20' y='25' width='60' height='55' rx='2' fill='none' stroke='%23000' stroke-width='6'/><line x1='30' y1='40' x2='70' y2='40' stroke='%23000' stroke-width='6'/><line x1='30' y1='55' x2='70' y2='55' stroke='%23000' stroke-width='6'/><line x1='30' y1='70' x2='55' y2='70' stroke='%23000' stroke-width='6'/><rect x='40' y='10' width='20' height='10' rx='2' fill='%23333'/></svg>">
 
   <style>
     :root {
-      --bg: #ffffff;
-      --card: #ffffff;
-      --text: #000000;
-      --muted: #666666;
-      --primary: #1f6feb;
-      --danger: #d1242f;
-      --border: #d0d7de;
-      --input-bg: #f6f8fa;
+      --bg: #ffffff; --card: #ffffff; --text: #000000; --muted: #666666;
+      --primary: #1f6feb; --danger: #d1242f; --border: #d0d7de; --input-bg: #f6f8fa;
     }
-
     body.dark-mode {
-      --bg: #000000;
-      --card: #161b22;
-      --text: #f0f6fc;
-      --muted: #8b949e;
-      --primary: #58a6ff;
-      --danger: #f85149;
-      --border: #30363d;
-      --input-bg: #0d1117;
+      --bg: #000000; --card: #161b22; --text: #f0f6fc; --muted: #8b949e;
+      --primary: #58a6ff; --danger: #f85149; --border: #30363d; --input-bg: #0d1117;
     }
-
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); }
+    html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
     body { padding: 10px; min-height: 100dvh; }
+
+    /* 横向き時のUI回転抑制（簡易版） */
+    @media (orientation: landscape) {
+      .app { transform: none; }
+    }
 
     .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
     
     .titlebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    h1 { margin: 0; font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
-    
-    .header-actions { display: flex; gap: 4px; overflow: hidden; }
-    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
+    h1 { margin: 0; font-size: 0.95rem; white-space: nowrap; }
+    .header-actions { display: flex; gap: 4px; }
+    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.7rem; cursor: pointer; }
 
     .list-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 15px; }
-    .item-title { font-size: 1.1rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
+    .item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; position: relative; }
+    .item-title { font-size: 1rem; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; }
     
-    .controls { display: grid; grid-template-columns: 1fr 54px 54px; gap: 10px; height: 60px; }
-    input[type="text"] { width: 100%; background: var(--input-bg); color: var(--text); border: 2px solid var(--border); border-radius: 8px; padding: 5px; font-size: 2.2rem; font-weight: bold; text-align: center; }
+    .photo-area { 
+      width: 100%; height: 110px; background: var(--input-bg); border: 1px solid var(--border); 
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;
+    }
+    .photo-area img { width: 100%; height: 100%; object-fit: contain; }
+    
+    .controls { display: grid; grid-template-columns: 1fr 60px 45px; gap: 8px; height: 45px; }
+    .memo-input { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; font-size: 0.85rem; }
 
     .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .btn-camera { background: var(--primary); color: white; }
     .cam-icon { width: 22px; height: 16px; border: 2px solid white; border-radius: 3px; position: relative; }
     .cam-icon::before { content: ""; position: absolute; top: -5px; left: 5px; width: 8px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
-    .btn-clear { background: var(--danger); color: white; }
-    .x-icon { position: relative; width: 20px; height: 20px; }
-    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 9px; left: 0; width: 20px; height: 2.5px; background: white; transform: rotate(45deg); }
+    .btn-clear { background: var(--danger); color: white; opacity: 0.8; }
+    .x-icon { position: relative; width: 16px; height: 16px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 7px; left: 0; width: 16px; height: 2px; background: white; transform: rotate(45deg); }
     .x-icon::after { transform: rotate(-45deg); }
 
-    .qr-container { display: flex; flex-direction: column; align-items: center; padding: 20px; text-align: center; gap: 10px; }
-    #qrcode { background: white; padding: 8px; border-radius: 8px; }
-    .url-display { font-size: 0.7rem; color: var(--primary); word-break: break-all; border: 1px dashed var(--border); padding: 8px; border-radius: 6px; width: 100%; }
-
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    video { width: 100%; max-height: 70vh; }
-    .shutter-box { position: absolute; width: 260px; height: 120px; border: 2px solid #58a6ff; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.5); }
+    video { width: 100%; max-height: 100dvh; }
+    .shutter-box { position: absolute; width: 300px; height: 120px; border: 2px solid #58a6ff; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.7); border-radius: 4px; }
+    .shutter-box::after { content: "メーターを枠内に"; position: absolute; top: -25px; left: 0; color: #58a6ff; font-size: 0.8rem; font-weight: bold; }
     
     .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
     .settings-card { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 450px; margin: auto; }
@@ -78,7 +71,7 @@
   <div class="app">
     <header class="panel">
       <div class="titlebar">
-        <h1>現場レコーダー</h1>
+        <h1>現場レコーダー(画像版)</h1>
         <div class="header-actions">
           <button id="toggleThemeBtn" class="head-btn">モード</button>
           <button id="openSettingsBtn" class="head-btn">項目名</button>
@@ -88,16 +81,11 @@
     </header>
 
     <div id="itemList" class="list-wrap"></div>
-
-    <footer class="panel qr-container">
-      <div id="qrcode"></div>
-      <div class="url-display" id="urlText"></div>
-    </footer>
   </div>
 
   <div id="settingsLayer" class="settings-layer">
     <div class="settings-card">
-      <h3 style="margin-top:0; font-size: 1.1rem;">項目名の設定</h3>
+      <h3 style="margin:0 0 15px 0; font-size: 1.1rem;">項目名の設定</h3>
       <div id="settingsGrid" style="display:grid; gap:8px;"></div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
         <button id="cancelSettingsBtn" class="head-btn" style="height:48px;">戻る</button>
@@ -111,42 +99,104 @@
     <div class="shutter-box"></div>
     <div style="position:fixed; bottom:40px; display:flex; gap:15px; width:100%; padding:0 20px;">
       <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:60px;"><div class="x-icon"></div></button>
-      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:60px; font-weight:bold; font-size:1.2rem;">読込</button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:60px; font-weight:bold; font-size:1.2rem;">撮影</button>
     </div>
     <canvas id="captureCanvas" style="display:none;"></canvas>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     (() => {
       const ITEM_COUNT = 10;
+      let db = null;
       let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
-      const itemList = document.getElementById("itemList");
-      
-      const currentURL = window.location.href;
-      document.getElementById("urlText").textContent = currentURL;
-      new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 120, height: 120 });
+
+      // IndexedDB初期化
+      const request = indexedDB.open("GenbaRecorderDB", 1);
+      request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("items")) {
+          db.createObjectStore("items", { keyPath: "id" });
+        }
+      };
+      request.onsuccess = (e) => {
+        db = e.target.result;
+        initApp();
+      };
+
+      async function initApp() {
+        render();
+        // 初期読込
+        for (let i = 0; i < ITEM_COUNT; i++) {
+          const data = await getDBItem(i);
+          if (data) {
+            if (data.photo) updatePhotoUI(i, data.photo);
+            if (data.memo) document.getElementById(`memo-${i}`).value = data.memo;
+          }
+        }
+      }
 
       function render() {
+        const itemList = document.getElementById("itemList");
         itemList.innerHTML = "";
         itemNames.forEach((name, i) => {
           const div = document.createElement("div");
           div.className = "item";
           div.innerHTML = `
-            <div class="item-title">${name}</div>
+            <div class="item-title"><span>${i+1}. ${name}</span></div>
+            <div class="photo-area" id="photo-${i}" onclick="openCam(${i})">
+              <span style="color:var(--muted); font-size:0.8rem;">タップして撮影</span>
+            </div>
             <div class="controls">
-              <input type="text" id="val-${i}" inputmode="decimal" placeholder="0">
+              <input type="text" class="memo-input" id="memo-${i}" placeholder="メモ" oninput="saveMemo(${i}, this.value)">
               <button class="btn btn-camera" onclick="openCam(${i})"><div class="cam-icon"></div></button>
-              <button class="btn btn-clear" onclick="document.getElementById('val-${i}').value=''"><div class="x-icon"></div></button>
+              <button class="btn btn-clear" onclick="clearItem(${i})"><div class="x-icon"></div></button>
             </div>
           `;
           itemList.appendChild(div);
         });
       }
 
-      document.getElementById("toggleThemeBtn").onclick = () => document.body.classList.toggle("dark-mode");
+      // DB操作
+      function getDBItem(id) {
+        return new Promise(resolve => {
+          const tx = db.transaction("items", "readonly");
+          const store = tx.objectStore("items");
+          const req = store.get(id);
+          req.onsuccess = () => resolve(req.result);
+        });
+      }
 
+      function saveDBItem(id, data) {
+        return new Promise(async resolve => {
+          const existing = await getDBItem(id) || { id: id };
+          const updated = { ...existing, ...data };
+          const tx = db.transaction("items", "readwrite");
+          const store = tx.objectStore("items");
+          store.put(updated);
+          tx.oncomplete = () => resolve();
+        });
+      }
+
+      window.saveMemo = (i, val) => saveDBItem(i, { memo: val });
+
+      window.clearItem = async (i) => {
+        if(confirm(`項目 ${i+1} を消去しますか？`)) {
+          const tx = db.transaction("items", "readwrite");
+          tx.objectStore("items").delete(i);
+          tx.oncomplete = () => {
+            document.getElementById(`memo-${i}`).value = "";
+            document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">タップして撮影</span>`;
+          };
+        }
+      };
+
+      function updatePhotoUI(i, dataUrl) {
+        const area = document.getElementById(`photo-${i}`);
+        if(area) area.innerHTML = `<img src="${dataUrl}">`;
+      }
+
+      // 設定・テーマ
+      document.getElementById("toggleThemeBtn").onclick = () => document.body.classList.toggle("dark-mode");
       document.getElementById("openSettingsBtn").onclick = () => {
         const grid = document.getElementById("settingsGrid");
         grid.innerHTML = "";
@@ -154,48 +204,42 @@
           const input = document.createElement("input");
           input.type = "text";
           input.value = name;
-          input.style.padding = "10px";
-          input.style.border = "1px solid var(--border)";
-          input.style.borderRadius = "8px";
-          input.style.background = "var(--input-bg)";
-          input.style.color = "var(--text)";
-          input.style.fontSize = "1rem";
+          input.style.padding = "10px"; input.style.border = "1px solid var(--border)";
+          input.style.borderRadius = "8px"; input.style.background = "var(--input-bg)"; input.style.color = "var(--text)";
           input.oninput = (e) => { itemNames[i] = e.target.value; };
           grid.appendChild(input);
         });
         document.getElementById("settingsLayer").style.display = "flex";
       };
-
       document.getElementById("closeSettingsBtn").onclick = () => {
         localStorage.setItem('genba_names', JSON.stringify(itemNames));
         document.getElementById("settingsLayer").style.display = "none";
         render();
+        initApp();
       };
-
       document.getElementById("cancelSettingsBtn").onclick = () => {
-        itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
         document.getElementById("settingsLayer").style.display = "none";
-        render();
       };
-
       document.getElementById("clearAllBtn").onclick = () => {
-        if(confirm("全ての数値を消去しますか？")) {
-          for(let i=0; i<ITEM_COUNT; i++) {
-            const el = document.getElementById(`val-${i}`);
-            if(el) el.value = "";
-          }
+        if(confirm("全項目の画像とメモを完全に消去しますか？")) {
+          const tx = db.transaction("items", "readwrite");
+          tx.objectStore("items").clear();
+          tx.oncomplete = () => location.reload();
         }
       };
 
+      // カメラロジック
       let activeIdx = null;
       let stream = null;
       window.openCam = async (idx) => {
         activeIdx = idx;
         try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
+          });
           document.getElementById("cameraView").srcObject = stream;
           document.getElementById("cameraLayer").style.display = "flex";
-        } catch (e) { alert("カメラにアクセスできません"); }
+        } catch (e) { alert("カメラを起動できません"); }
       };
 
       const stopCamera = () => {
@@ -204,54 +248,44 @@
       };
       document.getElementById("cancelBtn").onclick = stopCamera;
 
-      document.getElementById("shotBtn").onclick = async () => {
+      document.getElementById("shotBtn").onclick = () => {
         const video = document.getElementById("cameraView");
         const canvas = document.getElementById("captureCanvas");
         const ctx = canvas.getContext("2d");
 
-        // シャッター枠の部分だけを抽出して解析（精度向上）
-        const scale = video.videoWidth / video.clientWidth;
-        const box = document.querySelector('.shutter-box').getBoundingClientRect();
-        const vBox = video.getBoundingClientRect();
+        // ガイド枠の位置計算
+        const vRect = video.getBoundingClientRect();
+        const sRect = document.querySelector('.shutter-box').getBoundingClientRect();
         
-        canvas.width = box.width * scale;
-        canvas.height = box.height * scale;
-        
-        ctx.drawImage(video, 
-          (box.left - vBox.left) * scale, (box.top - vBox.top) * scale, 
-          box.width * scale, box.height * scale,
-          0, 0, canvas.width, canvas.height
-        );
+        const scaleX = video.videoWidth / vRect.width;
+        const scaleY = video.videoHeight / vRect.height;
 
-        // デジタルメーター向け画像前処理（二値化）
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = imgData.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const v = (d[i] + d[i+1] + d[i+2]) / 3;
-          const res = v > 120 ? 255 : 0; // 閾値調整
-          d[i] = d[i+1] = d[i+2] = res;
-        }
-        ctx.putImageData(imgData, 0, 0);
+        const cropX = (sRect.left - vRect.left) * scaleX;
+        const cropY = (sRect.top - vRect.top) * scaleY;
+        const cropW = sRect.width * scaleX;
+        const cropH = sRect.height * scaleY;
+
+        // 解像度抑制（横幅600px）
+        const targetW = 600;
+        const targetH = (sRect.height / sRect.width) * targetW;
         
-        const shotBtn = document.getElementById("shotBtn");
-        shotBtn.textContent = "解析中";
-        shotBtn.disabled = true;
+        canvas.width = targetW;
+        canvas.height = targetH;
         
-        try {
-          // 数字のみを読み取るようにエンジンを設定
-          const { data: { text } } = await Tesseract.recognize(canvas, 'eng', {
-            tessedit_char_whitelist: '0123456789.'
-          });
-          const num = text.replace(/[^0-9.]/g, "").match(/\d+(\.\d+)?/);
-          if(num) document.getElementById(`val-${activeIdx}`).value = num[0];
-        } catch (e) {}
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        saveDBItem(activeIdx, { photo: dataUrl });
+        updatePhotoUI(activeIdx, dataUrl);
         
-        shotBtn.textContent = "読込";
-        shotBtn.disabled = false;
         stopCamera();
       };
 
-      render();
+      // 画面回転時のスクロール補正
+      window.addEventListener("orientationchange", () => {
+        setTimeout(() => window.scrollTo(0, 0), 200);
+      });
+
     })();
   </script>
 </body>
