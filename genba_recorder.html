@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="screen-orientation" content="portrait">
+  <title>現場レコーダー</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #ffffff;
+      --text: #000000;
+      --muted: #4a4a4a;
+      --primary: #1f6feb;
+      --danger: #d1242f;
+      --border: #d0d7de;
+      --shadow: 0 4px 12px rgba(27, 31, 36, 0.08);
+      --input-bg: #ffffff;
+      --control-bg: #ffffff;
+      --control-text: #000000;
+    }
+
+    body.dark-mode {
+      --bg: #000000;
+      --card: #121212;
+      --text: #ffffff;
+      --muted: #c0c0c0;
+      --primary: #4b9cff;
+      --danger: #ff5d6e;
+      --border: #3a3a3a;
+      --shadow: none;
+      --input-bg: #1d1d1d;
+      --control-bg: #1a1a1a;
+      --control-text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo UI", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      min-height: calc(100dvh - 16px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 10px;
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.22rem;
+    }
+
+    .gear-btn {
+      border: 1px solid var(--border);
+      background: var(--control-bg);
+      color: var(--control-text);
+      border-radius: 10px;
+      min-height: 44px;
+      min-width: 44px;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+
+    .header-actions {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .head-btn {
+      border: 1px solid var(--border);
+      background: var(--control-bg);
+      color: var(--control-text);
+      border-radius: 8px;
+      min-height: 44px;
+      padding: 0 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--text);
+      outline: none;
+      font-size: 1rem;
+      padding: 12px 10px;
+      min-height: 48px;
+    }
+
+    .list-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 6px;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: var(--card);
+    }
+
+    .item-title {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 2fr 0.5fr 0.5fr;
+      gap: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      height: 100%;
+      min-height: 48px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .btn-camera { background: var(--primary); }
+    .btn-clear { background: var(--danger); }
+
+    .qr-section {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .qr-image {
+      display: block;
+      width: 140px;
+      margin: 0 auto 10px;
+      background: #fff;
+      padding: 5px;
+      border-radius: 8px;
+    }
+
+    .camera-layer {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    video {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .guide-box {
+      border: 2px solid #fff;
+      position: absolute;
+      width: 70%;
+      height: 20%;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+    .settings-layer {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 14px;
+      width: 90%;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <main class="app">
+    <section class="panel">
+      <div class="titlebar">
+        <h1>現場レコーダー</h1>
+        <div class="header-actions">
+          <button id="toggleThemeBtn" class="head-btn">ダーク</button>
+          <button id="clearAllBtn" class="head-btn">全クリア</button>
+          <button id="openSettingsBtn" class="gear-btn">⚙</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="itemList" class="list-wrap"></section>
+
+    <section class="panel qr-section">
+      <p style="font-size:0.8rem; margin-bottom:8px;">このアプリを追加</p>
+      <img class="qr-image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUAQMAAABv9S9pAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA7klEQVRIie2VwQ3DIAxFH8mR3KAnYARGyAhM0Am6QU9ghBxhAiaA8W6pUqlS1T/pByInP7DPfAnY8GNoCis8eA7mY+Z96K3B7QfL4C4mY6Y7M5lXmP2Qf8E0GTPdmcm8wvyH/AsG/M8f8D9/wP/8Af/zB9jC8Gto/mAKp0vE/YIp7E8H70P6mGidp6Y2I89mH4FpMC9Oonp95ZzM88Hsh8S7YPrP83S0mZ95fXAe3H7AnBstFqL6zGvD0Bqs9KAFmO6YnI/qM88F08S0ZnrQAsx3Zp6Z7sw8M68w+yH/ggEfYX+0GTPdmclU/Uf8L5gXp60E59H7H9oAAAAASUVORK5CYII=" alt="QR Code">
+      <p style="font-size:0.7rem; color:var(--muted);">deadmansq26.github.io/field-tools/</p>
+    </section>
+  </main>
+
+  <div id="settingsLayer" class="settings-layer">
+    <div class="settings-card">
+      <h2 style="margin-top:0;">項目名設定</h2>
+      <div id="settingsGrid" class="settings-grid"></div>
+      <button id="closeSettingsBtn" class="btn btn-camera" style="width:100%; margin-top:15px;">保存して閉じる</button>
+    </div>
+  </div>
+
+  <div id="cameraLayer" class="camera-layer">
+    <video id="cameraView" autoplay playsinline muted></video>
+    <div class="guide-box"></div>
+    <div style="margin-top:15px; display:flex; gap:10px; width:100%; max-width:400px;">
+      <button id="shotBtn" class="btn btn-camera" style="flex:1;">読み取り</button>
+      <button id="cancelBtn" class="btn btn-clear" style="flex:1;">閉じる</button>
+    </div>
+    <canvas id="captureCanvas" style="display:none;"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    (() => {
+      const ITEM_COUNT = 10;
+      let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
+
+      const itemList = document.getElementById("itemList");
+      const settingsGrid = document.getElementById("settingsGrid");
+      const toggleThemeBtn = document.getElementById("toggleThemeBtn");
+
+      function render() {
+        itemList.innerHTML = "";
+        itemNames.forEach((name, i) => {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <div class="item-title">${name}</div>
+            <div class="controls">
+              <input type="text" id="val-${i}" placeholder="数値" style="font-size:1.4rem; font-weight:bold;">
+              <button class="btn btn-camera" onclick="openCam(${i})">📷</button>
+              <button class="btn btn-clear" onclick="document.getElementById('val-${i}').value=''">✕</button>
+            </div>
+          `;
+          itemList.appendChild(div);
+        });
+      }
+
+      window.openCam = (idx) => {
+        activeIdx = idx;
+        document.getElementById("cameraLayer").style.display = "flex";
+        startCamera();
+      };
+
+      // 基本的なテーマ・設定制御
+      toggleThemeBtn.onclick = () => {
+        document.body.classList.toggle("dark-mode");
+        toggleThemeBtn.textContent = document.body.classList.contains("dark-mode") ? "ライト" : "ダーク";
+      };
+
+      document.getElementById("openSettingsBtn").onclick = () => {
+        settingsGrid.innerHTML = "";
+        itemNames.forEach((name, i) => {
+          const input = document.createElement("input");
+          input.value = name;
+          input.oninput = (e) => { itemNames[i] = e.target.value; localStorage.setItem('genba_names', JSON.stringify(itemNames)); };
+          settingsGrid.appendChild(input);
+        });
+        document.getElementById("settingsLayer").style.display = "flex";
+      };
+
+      document.getElementById("closeSettingsBtn").onclick = () => {
+        document.getElementById("settingsLayer").style.display = "none";
+        render();
+      };
+
+      document.getElementById("clearAllBtn").onclick = () => {
+        if(confirm("全ての入力を消去しますか？")) {
+          itemNames.forEach((_, i) => document.getElementById(`val-${i}`).value = "");
+        }
+      };
+
+      // カメラ・OCR簡易処理
+      let activeIdx = null;
+      let stream = null;
+      async function startCamera() {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        document.getElementById("cameraView").srcObject = stream;
+      }
+
+      function stopCamera() {
+        if(stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById("cameraLayer").style.display = "none";
+      }
+
+      document.getElementById("cancelBtn").onclick = stopCamera;
+
+      document.getElementById("shotBtn").onclick = async () => {
+        const video = document.getElementById("cameraView");
+        const canvas = document.getElementById("captureCanvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        
+        document.getElementById("shotBtn").textContent = "解析中...";
+        const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+        const num = text.replace(/[^0-9.]/g, "").split("\n")[0];
+        if(num) document.getElementById(`val-${activeIdx}`).value = num;
+        
+        document.getElementById("shotBtn").textContent = "読み取り";
+        stopCamera();
+      };
+
+      render();
+    })();
+  </script>
+</body>
+</html>
