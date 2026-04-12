@@ -48,16 +48,21 @@
     .controls { display: grid; grid-template-columns: 1fr 54px 54px; gap: 8px; }
     input[type="text"] { width: 100%; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 1.2rem; font-weight: bold; }
 
-    /* シンプルなアイコンボタン */
+    /* アイコンボタン：シンプル化 */
     .btn { border: none; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .btn-camera { background: var(--primary); color: white; position: relative; }
-    /* カメラアイコンの代わりの四角形 */
-    .btn-camera::after { content: ""; width: 18px; height: 14px; border: 2px solid white; border-radius: 2px; }
-    .btn-camera::before { content: ""; width: 6px; height: 3px; background: white; position: absolute; top: 12px; border-radius: 1px; }
+    
+    .btn-camera { background: var(--primary); color: white; }
+    /* カメラの図形化 */
+    .cam-icon { width: 18px; height: 13px; border: 2px solid white; border-radius: 2px; position: relative; }
+    .cam-icon::before { content: ""; position: absolute; top: -4px; left: 4px; width: 6px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
 
-    .btn-clear { background: var(--danger); color: white; font-size: 1.5rem; font-weight: 300; }
+    .btn-clear { background: var(--danger); color: white; }
+    /* ×印の図形化 */
+    .x-icon { position: relative; width: 20px; height: 20px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: white; transform: rotate(45deg); }
+    .x-icon::after { transform: rotate(-45deg); }
 
-    /* QR/URL Section */
+    /* QR/URL */
     .qr-container { display: flex; flex-direction: column; align-items: center; padding: 20px; text-align: center; gap: 10px; }
     #qrcode { background: white; padding: 8px; border-radius: 4px; }
     .url-display { font-size: 0.75rem; color: var(--primary); word-break: break-all; border: 1px dashed var(--border); padding: 8px; border-radius: 4px; width: 100%; }
@@ -65,9 +70,10 @@
     /* Camera Overlay */
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     video { width: 100%; max-height: 70vh; }
-    .shutter-box { position: absolute; width: 220px; height: 100px; border: 1px solid white; }
+    .shutter-box { position: absolute; width: 220px; height: 100px; border: 1px solid white; pointer-events: none; }
     
-    .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; }
+    /* Settings Overlay */
+    .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
     .settings-card { background: var(--card); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; margin: auto; }
   </style>
 </head>
@@ -77,9 +83,9 @@
       <div class="titlebar">
         <h1>現場レコーダー</h1>
         <div class="header-actions">
-          <button id="toggleThemeBtn" class="head-btn">Mode</button>
-          <button id="openSettingsBtn" class="head-btn">Label</button>
-          <button id="clearAllBtn" class="head-btn">Clear</button>
+          <button id="toggleThemeBtn" class="head-btn">モード</button>
+          <button id="openSettingsBtn" class="head-btn">項目名</button>
+          <button id="clearAllBtn" class="head-btn">全消去</button>
         </div>
       </div>
     </header>
@@ -94,115 +100,6 @@
 
   <div id="settingsLayer" class="settings-layer">
     <div class="settings-card">
-      <h3 style="margin-top:0">項目名設定</h3>
+      <h3 style="margin-top:0">項目名の設定</h3>
       <div id="settingsGrid" style="display:grid; gap:8px;"></div>
-      <button id="closeSettingsBtn" class="btn btn-camera" style="width:100%; margin-top:20px; height:44px;">Save</button>
-    </div>
-  </div>
-
-  <div id="cameraLayer" class="camera-layer">
-    <video id="cameraView" autoplay playsinline muted></video>
-    <div class="shutter-box"></div>
-    <div style="position:fixed; bottom:40px; display:flex; gap:10px; width:100%; padding:0 20px;">
-      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:54px;">✕</button>
-      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:54px;">READ</button>
-    </div>
-    <canvas id="captureCanvas" style="display:none;"></canvas>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script>
-    (() => {
-      const ITEM_COUNT = 10;
-      let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
-      const itemList = document.getElementById("itemList");
-      
-      // URL露出とQR生成
-      const currentURL = window.location.href;
-      document.getElementById("urlText").textContent = currentURL;
-      new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 120, height: 120 });
-
-      function render() {
-        itemList.innerHTML = "";
-        itemNames.forEach((name, i) => {
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = `
-            <div class="item-title">${name}</div>
-            <div class="controls">
-              <input type="text" id="val-${i}" inputmode="decimal" placeholder="0">
-              <button class="btn btn-camera" onclick="openCam(${i})"></button>
-              <button class="btn btn-clear" onclick="document.getElementById('val-${i}').value=''">✕</button>
-            </div>
-          `;
-          itemList.appendChild(div);
-        });
-      }
-
-      document.getElementById("toggleThemeBtn").onclick = () => document.body.classList.toggle("dark-mode");
-
-      document.getElementById("openSettingsBtn").onclick = () => {
-        const grid = document.getElementById("settingsGrid");
-        grid.innerHTML = "";
-        itemNames.forEach((name, i) => {
-          const input = document.createElement("input");
-          input.type = "text";
-          input.value = name;
-          input.style.padding = "8px";
-          input.oninput = (e) => { itemNames[i] = e.target.value; };
-          grid.appendChild(input);
-        });
-        document.getElementById("settingsLayer").style.display = "flex";
-      };
-
-      document.getElementById("closeSettingsBtn").onclick = () => {
-        localStorage.setItem('genba_names', JSON.stringify(itemNames));
-        document.getElementById("settingsLayer").style.display = "none";
-        render();
-      };
-
-      document.getElementById("clearAllBtn").onclick = () => {
-        if(confirm("全消去？")) itemNames.forEach((_, i) => document.getElementById(`val-${i}`).value = "");
-      };
-
-      let activeIdx = null;
-      let stream = null;
-      window.openCam = async (idx) => {
-        activeIdx = idx;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-          document.getElementById("cameraView").srcObject = stream;
-          document.getElementById("cameraLayer").style.display = "flex";
-        } catch (e) { alert("Camera Error"); }
-      };
-
-      const stopCamera = () => {
-        if(stream) stream.getTracks().forEach(t => t.stop());
-        document.getElementById("cameraLayer").style.display = "none";
-      };
-      document.getElementById("cancelBtn").onclick = stopCamera;
-
-      document.getElementById("shotBtn").onclick = async () => {
-        const video = document.getElementById("cameraView");
-        const canvas = document.getElementById("captureCanvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
-        
-        document.getElementById("shotBtn").textContent = "...";
-        try {
-          const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
-          const num = text.replace(/[^0-9.]/g, "").match(/\d+(\.\d+)?/);
-          if(num) document.getElementById(`val-${activeIdx}`).value = num[0];
-        } catch (e) {}
-        
-        document.getElementById("shotBtn").textContent = "READ";
-        stopCamera();
-      };
-
-      render();
-    })();
-  </script>
-</body>
-</html>
+      <div style="display:grid
