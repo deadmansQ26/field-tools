@@ -40,7 +40,6 @@
     .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
     
-    /* ヘッダー：1段に収めるための調整 */
     .titlebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     h1 { margin: 0; font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
     
@@ -51,17 +50,13 @@
     .item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 15px; }
     .item-title { font-size: 1.1rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
     
-    /* コントロール：入力欄を最大化、アイコンボタンをスリム化 */
     .controls { display: grid; grid-template-columns: 1fr 54px 54px; gap: 10px; height: 60px; }
     input[type="text"] { width: 100%; background: var(--input-bg); color: var(--text); border: 2px solid var(--border); border-radius: 8px; padding: 5px; font-size: 2.2rem; font-weight: bold; text-align: center; }
 
     .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    
     .btn-camera { background: var(--primary); color: white; }
-    /* アイコンをスリム化 */
     .cam-icon { width: 22px; height: 16px; border: 2px solid white; border-radius: 3px; position: relative; }
     .cam-icon::before { content: ""; position: absolute; top: -5px; left: 5px; width: 8px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
-
     .btn-clear { background: var(--danger); color: white; }
     .x-icon { position: relative; width: 20px; height: 20px; }
     .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 9px; left: 0; width: 20px; height: 2.5px; background: white; transform: rotate(45deg); }
@@ -73,7 +68,7 @@
 
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     video { width: 100%; max-height: 70vh; }
-    .shutter-box { position: absolute; width: 260px; height: 120px; border: 2px solid white; pointer-events: none; }
+    .shutter-box { position: absolute; width: 260px; height: 120px; border: 2px solid #58a6ff; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.5); }
     
     .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
     .settings-card { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 450px; margin: auto; }
@@ -212,15 +207,41 @@
       document.getElementById("shotBtn").onclick = async () => {
         const video = document.getElementById("cameraView");
         const canvas = document.getElementById("captureCanvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
+        const ctx = canvas.getContext("2d");
+
+        // シャッター枠の部分だけを抽出して解析（精度向上）
+        const scale = video.videoWidth / video.clientWidth;
+        const box = document.querySelector('.shutter-box').getBoundingClientRect();
+        const vBox = video.getBoundingClientRect();
+        
+        canvas.width = box.width * scale;
+        canvas.height = box.height * scale;
+        
+        ctx.drawImage(video, 
+          (box.left - vBox.left) * scale, (box.top - vBox.top) * scale, 
+          box.width * scale, box.height * scale,
+          0, 0, canvas.width, canvas.height
+        );
+
+        // デジタルメーター向け画像前処理（二値化）
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const v = (d[i] + d[i+1] + d[i+2]) / 3;
+          const res = v > 120 ? 255 : 0; // 閾値調整
+          d[i] = d[i+1] = d[i+2] = res;
+        }
+        ctx.putImageData(imgData, 0, 0);
         
         const shotBtn = document.getElementById("shotBtn");
         shotBtn.textContent = "解析中";
         shotBtn.disabled = true;
+        
         try {
-          const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+          // 数字のみを読み取るようにエンジンを設定
+          const { data: { text } } = await Tesseract.recognize(canvas, 'eng', {
+            tessedit_char_whitelist: '0123456789.'
+          });
           const num = text.replace(/[^0-9.]/g, "").match(/\d+(\.\d+)?/);
           if(num) document.getElementById(`val-${activeIdx}`).value = num[0];
         } catch (e) {}
