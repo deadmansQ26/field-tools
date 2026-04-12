@@ -35,48 +35,48 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); }
-    body { padding: 15px; min-height: 100dvh; font-size: 16px; }
+    body { padding: 10px; min-height: 100dvh; }
 
-    .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
-    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+    .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
     
-    .titlebar { display: flex; align-items: center; justify-content: space-between; }
-    h1 { margin: 0; font-size: 1.2rem; }
+    /* ヘッダー：1段に収めるための調整 */
+    .titlebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    h1 { margin: 0; font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
     
-    .header-actions { display: flex; gap: 8px; }
-    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.95rem; cursor: pointer; }
+    .header-actions { display: flex; gap: 4px; overflow: hidden; }
+    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
 
-    /* 項目リストの巨大化：1項目にリソースを集中 */
-    .list-wrap { display: flex; flex-direction: column; gap: 12px; }
-    .item { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 22px; }
-    .item-title { font-size: 1.3rem; font-weight: bold; color: var(--text); margin-bottom: 14px; }
+    .list-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 15px; }
+    .item-title { font-size: 1.1rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
     
-    /* 入力インターフェース：2remの巨大フォント */
-    .controls { display: grid; grid-template-columns: 1fr 75px 75px; gap: 15px; height: 70px; }
-    input[type="text"] { width: 100%; background: var(--input-bg); color: var(--text); border: 2px solid var(--border); border-radius: 10px; padding: 10px; font-size: 2.2rem; font-weight: bold; text-align: center; }
+    /* コントロール：入力欄を最大化、アイコンボタンをスリム化 */
+    .controls { display: grid; grid-template-columns: 1fr 54px 54px; gap: 10px; height: 60px; }
+    input[type="text"] { width: 100%; background: var(--input-bg); color: var(--text); border: 2px solid var(--border); border-radius: 8px; padding: 5px; font-size: 2.2rem; font-weight: bold; text-align: center; }
 
-    .btn { border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     
     .btn-camera { background: var(--primary); color: white; }
-    .cam-icon { width: 28px; height: 20px; border: 3px solid white; border-radius: 4px; position: relative; }
-    .cam-icon::before { content: ""; position: absolute; top: -7px; left: 6px; width: 10px; height: 5px; background: white; border-radius: 2px 2px 0 0; }
+    /* アイコンをスリム化 */
+    .cam-icon { width: 22px; height: 16px; border: 2px solid white; border-radius: 3px; position: relative; }
+    .cam-icon::before { content: ""; position: absolute; top: -5px; left: 5px; width: 8px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
 
     .btn-clear { background: var(--danger); color: white; }
-    .x-icon { position: relative; width: 26px; height: 26px; }
-    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 12px; left: 0; width: 26px; height: 3.5px; background: white; transform: rotate(45deg); }
+    .x-icon { position: relative; width: 20px; height: 20px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 9px; left: 0; width: 20px; height: 2.5px; background: white; transform: rotate(45deg); }
     .x-icon::after { transform: rotate(-45deg); }
 
-    .qr-container { display: flex; flex-direction: column; align-items: center; padding: 24px; text-align: center; gap: 12px; }
-    #qrcode { background: white; padding: 10px; border-radius: 8px; }
-    .url-display { font-size: 0.8rem; color: var(--primary); word-break: break-all; border: 1px dashed var(--border); padding: 10px; border-radius: 6px; width: 100%; }
+    .qr-container { display: flex; flex-direction: column; align-items: center; padding: 20px; text-align: center; gap: 10px; }
+    #qrcode { background: white; padding: 8px; border-radius: 8px; }
+    .url-display { font-size: 0.7rem; color: var(--primary); word-break: break-all; border: 1px dashed var(--border); padding: 8px; border-radius: 6px; width: 100%; }
 
-    /* カメラオーバーレイ：視認性向上 */
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     video { width: 100%; max-height: 70vh; }
-    .shutter-box { position: absolute; width: 280px; height: 130px; border: 3px solid white; pointer-events: none; }
+    .shutter-box { position: absolute; width: 260px; height: 120px; border: 2px solid white; pointer-events: none; }
     
     .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
-    .settings-card { background: var(--card); border-radius: 16px; padding: 24px; width: 100%; max-width: 450px; margin: auto; }
+    .settings-card { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 450px; margin: auto; }
   </style>
 </head>
 <body class="dark-mode">
@@ -102,11 +102,11 @@
 
   <div id="settingsLayer" class="settings-layer">
     <div class="settings-card">
-      <h3 style="margin-top:0">項目名の設定</h3>
-      <div id="settingsGrid" style="display:grid; gap:12px;"></div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:24px;">
-        <button id="cancelSettingsBtn" class="head-btn" style="height:58px;">戻る</button>
-        <button id="closeSettingsBtn" class="btn btn-camera" style="height:58px; font-size:1.1rem; font-weight:bold;">保存</button>
+      <h3 style="margin-top:0; font-size: 1.1rem;">項目名の設定</h3>
+      <div id="settingsGrid" style="display:grid; gap:8px;"></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
+        <button id="cancelSettingsBtn" class="head-btn" style="height:48px;">戻る</button>
+        <button id="closeSettingsBtn" class="btn btn-camera" style="height:48px; font-size:0.9rem; font-weight:bold;">保存</button>
       </div>
     </div>
   </div>
@@ -114,9 +114,9 @@
   <div id="cameraLayer" class="camera-layer">
     <video id="cameraView" autoplay playsinline muted></video>
     <div class="shutter-box"></div>
-    <div style="position:fixed; bottom:40px; display:flex; gap:15px; width:100%; padding:0 25px;">
-      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:68px;"><div class="x-icon"></div></button>
-      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:68px; font-weight:bold; font-size:1.4rem;">読込</button>
+    <div style="position:fixed; bottom:40px; display:flex; gap:15px; width:100%; padding:0 20px;">
+      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:60px;"><div class="x-icon"></div></button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:60px; font-weight:bold; font-size:1.2rem;">読込</button>
     </div>
     <canvas id="captureCanvas" style="display:none;"></canvas>
   </div>
@@ -131,7 +131,7 @@
       
       const currentURL = window.location.href;
       document.getElementById("urlText").textContent = currentURL;
-      new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 140, height: 140 });
+      new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 120, height: 120 });
 
       function render() {
         itemList.innerHTML = "";
@@ -159,12 +159,12 @@
           const input = document.createElement("input");
           input.type = "text";
           input.value = name;
-          input.style.padding = "14px";
-          input.style.border = "2px solid var(--border)";
-          input.style.borderRadius = "10px";
+          input.style.padding = "10px";
+          input.style.border = "1px solid var(--border)";
+          input.style.borderRadius = "8px";
           input.style.background = "var(--input-bg)";
           input.style.color = "var(--text)";
-          input.style.fontSize = "1.2rem";
+          input.style.fontSize = "1rem";
           input.oninput = (e) => { itemNames[i] = e.target.value; };
           grid.appendChild(input);
         });
