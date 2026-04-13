@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>現場レコーダー(画像版V2.1)</title>
+  <title>現場レコーダー V3</title>
   
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='5' fill='%23f0f6fc' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='35' x2='75' y2='35' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='55' x2='75' y2='55' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='75' x2='55' y2='75' stroke='%2330363d' stroke-width='5'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='15' fill='%23ffffff'/><rect x='20' y='25' width='60' height='55' rx='2' fill='none' stroke='%23000' stroke-width='6'/><line x1='30' y1='40' x2='70' y2='40' stroke='%23000' stroke-width='6'/><line x1='30' y1='55' x2='70' y2='55' stroke='%23000' stroke-width='6'/><line x1='30' y1='70' x2='55' y2='70' stroke='%23000' stroke-width='6'/><rect x='40' y='10' width='20' height='10' rx='2' fill='%23333'/></svg>">
@@ -23,58 +23,62 @@
     html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
     body { padding: 10px; min-height: 100dvh; }
 
-    .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 30px; }
+    .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
     .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
     
     .titlebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    h1 { margin: 0; font-size: 0.95rem; white-space: nowrap; }
-    .header-actions { display: flex; gap: 4px; }
-    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.7rem; cursor: pointer; }
+    h1 { margin: 0; font-size: 1rem; }
+    .header-actions { display: flex; gap: 6px; }
+    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 0.75rem; cursor: pointer; font-weight: bold; }
 
-    .list-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; position: relative; }
-    .item-title { font-size: 1rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .list-wrap { display: flex; flex-direction: column; gap: 12px; }
+    .item { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 15px; position: relative; }
+    .item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
     
+    /* 写真エリア：さらに拡大 */
     .photo-area { 
-      width: 100%; height: 180px; background: var(--input-bg); border: 1px solid var(--border); 
-      border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px;
+      width: 100%; height: 240px; background: var(--input-bg); border: 1px solid var(--border); 
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 12px;
+      cursor: zoom-in;
     }
-    .photo-area img { width: 100%; height: 100%; object-fit: contain; }
+    .photo-area img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.2s; }
+    /* タップ中だけ簡易ズーム（物理的に拡大） */
+    .photo-area img:active { transform: scale(2.0); }
     
-    .controls { display: grid; grid-template-columns: 1fr 65px 50px; gap: 8px; height: 48px; }
-    .memo-input { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; font-size: 0.9rem; }
+    /* メモ欄：文字を大きく、高さを確保 */
+    .controls { display: grid; grid-template-columns: 1fr 70px 55px; gap: 10px; height: 60px; }
+    .memo-input { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 0 15px; font-size: 1.3rem; font-weight: bold; }
 
-    .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .btn { border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .btn-camera { background: var(--primary); color: white; }
-    .cam-icon { width: 24px; height: 18px; border: 2px solid white; border-radius: 3px; position: relative; }
-    .cam-icon::before { content: ""; position: absolute; top: -5px; left: 6px; width: 8px; height: 3px; background: white; border-radius: 1px 1px 0 0; }
-    .btn-clear { background: var(--danger); color: white; opacity: 0.9; }
-    .x-icon { position: relative; width: 18px; height: 18px; }
-    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 8px; left: 0; width: 18px; height: 2px; background: white; transform: rotate(45deg); }
+    .cam-icon { width: 28px; height: 20px; border: 2.5px solid white; border-radius: 4px; position: relative; }
+    .cam-icon::before { content: ""; position: absolute; top: -6px; left: 7px; width: 10px; height: 4px; background: white; border-radius: 2px 2px 0 0; }
+    .btn-clear { background: var(--danger); color: white; }
+    .x-icon { position: relative; width: 20px; height: 20px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 9px; left: 0; width: 20px; height: 3px; background: white; transform: rotate(45deg); }
     .x-icon::after { transform: rotate(-45deg); }
 
     .qr-container { display: flex; flex-direction: column; align-items: center; padding: 15px; text-align: center; gap: 8px; margin-top: 10px; }
-    #qrcode { background: white; padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
-    .url-display { font-size: 0.65rem; color: var(--muted); word-break: break-all; width: 100%; }
+    #qrcode { background: white; padding: 8px; border-radius: 8px; }
 
-    /* カメラレイヤーとガイド枠の中央固定 */
+    /* カメラレイヤー：枠を巨大正方形に */
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; overflow: hidden; }
     #cameraView { width: 100%; height: 100%; object-fit: cover; }
     
     .shutter-box { 
       position: absolute; 
       top: 50%; left: 50%; 
-      transform: translate(-50%, -50%); /* 画面の真ん中に固定 */
-      width: 320px; height: 150px; 
-      border: 3px solid #58a6ff; 
+      transform: translate(-50%, -50%);
+      width: 320px; height: 320px; /* 巨大正方形 */
+      border: 4px solid #58a6ff; 
       pointer-events: none; 
       box-shadow: 0 0 0 2000px rgba(0,0,0,0.6); 
-      border-radius: 6px; 
+      border-radius: 12px; 
       z-index: 1001;
     }
-    .shutter-box::after { content: "メーターを中央に"; position: absolute; top: -30px; left: 0; color: #58a6ff; font-size: 0.9rem; font-weight: bold; }
+    .shutter-box::after { content: "ターゲットを中央に"; position: absolute; top: -35px; left: 0; color: #58a6ff; font-size: 1rem; font-weight: bold; width: 200px; }
     
-    .camera-ui { position: fixed; bottom: 40px; left: 0; width: 100%; display: flex; gap: 15px; padding: 0 20px; z-index: 1002; }
+    .camera-ui { position: fixed; bottom: 40px; left: 0; width: 100%; display: flex; gap: 15px; padding: 0 25px; z-index: 1002; }
 
     .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
     .settings-card { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 450px; margin: auto; }
@@ -84,7 +88,7 @@
   <div class="app">
     <header class="panel">
       <div class="titlebar">
-        <h1>現場レコーダー</h1>
+        <h1>現場レコーダー V3</h1>
         <div class="header-actions">
           <button id="toggleThemeBtn" class="head-btn">モード</button>
           <button id="openSettingsBtn" class="head-btn">項目名</button>
@@ -97,17 +101,17 @@
 
     <footer class="panel qr-container">
       <div id="qrcode"></div>
-      <div class="url-display" id="urlText"></div>
+      <div style="font-size:0.7rem; opacity:0.6;" id="urlText"></div>
     </footer>
   </div>
 
   <div id="settingsLayer" class="settings-layer">
     <div class="settings-card">
-      <h3 style="margin:0 0 15px 0; font-size: 1.1rem;">項目名の設定</h3>
+      <h3 style="margin:0 0 15px 0;">項目名の設定</h3>
       <div id="settingsGrid" style="display:grid; gap:8px;"></div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
-        <button id="cancelSettingsBtn" class="head-btn" style="height:48px;">戻る</button>
-        <button id="closeSettingsBtn" class="btn btn-camera" style="height:48px; font-size:0.9rem; font-weight:bold;">保存</button>
+        <button id="cancelSettingsBtn" class="head-btn" style="height:50px;">戻る</button>
+        <button id="closeSettingsBtn" class="btn btn-camera" style="height:50px; font-weight:bold;">保存</button>
       </div>
     </div>
   </div>
@@ -116,8 +120,8 @@
     <video id="cameraView" autoplay playsinline muted></video>
     <div class="shutter-box"></div>
     <div class="camera-ui">
-      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:60px;"><div class="x-icon"></div></button>
-      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:60px; font-weight:bold; font-size:1.2rem;">撮影</button>
+      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:65px;"><div class="x-icon"></div></button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:65px; font-weight:bold; font-size:1.3rem;">撮影</button>
     </div>
     <canvas id="captureCanvas" style="display:none;"></canvas>
   </div>
@@ -145,7 +149,7 @@
         render();
         const currentURL = window.location.href;
         document.getElementById("urlText").textContent = currentURL;
-        new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 90, height: 90 });
+        new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 100, height: 100 });
 
         for (let i = 0; i < ITEM_COUNT; i++) {
           const data = await getDBItem(i);
@@ -163,12 +167,12 @@
           const div = document.createElement("div");
           div.className = "item";
           div.innerHTML = `
-            <div class="item-title"><span>${i+1}. ${name}</span></div>
+            <div class="item-title">${name}</div>
             <div class="photo-area" id="photo-${i}" onclick="openCam(${i})">
-              <span style="color:var(--muted); font-size:0.8rem;">タップして撮影</span>
+              <span style="color:var(--muted); font-size:0.9rem;">撮影する</span>
             </div>
             <div class="controls">
-              <input type="text" class="memo-input" id="memo-${i}" placeholder="メモ" oninput="saveMemo(${i}, this.value)">
+              <input type="text" class="memo-input" id="memo-${i}" placeholder="値・メモ" oninput="saveMemo(${i}, this.value)">
               <button class="btn btn-camera" onclick="openCam(${i})"><div class="cam-icon"></div></button>
               <button class="btn btn-clear" onclick="clearItem(${i})"><div class="x-icon"></div></button>
             </div>
@@ -180,8 +184,7 @@
       function getDBItem(id) {
         return new Promise(resolve => {
           const tx = db.transaction("items", "readonly");
-          const store = tx.objectStore("items");
-          const req = store.get(id);
+          const req = tx.objectStore("items").get(id);
           req.onsuccess = () => resolve(req.result);
         });
       }
@@ -191,8 +194,7 @@
           const existing = await getDBItem(id) || { id: id };
           const updated = { ...existing, ...data };
           const tx = db.transaction("items", "readwrite");
-          const store = tx.objectStore("items");
-          store.put(updated);
+          tx.objectStore("items").put(updated);
           tx.oncomplete = () => resolve();
         });
       }
@@ -204,7 +206,7 @@
         tx.objectStore("items").delete(i);
         tx.oncomplete = () => {
           document.getElementById(`memo-${i}`).value = "";
-          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">タップして撮影</span>`;
+          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.9rem;">撮影する</span>`;
         };
       };
 
@@ -221,7 +223,7 @@
           const input = document.createElement("input");
           input.type = "text";
           input.value = name;
-          input.style.padding = "10px"; input.style.border = "1px solid var(--border)";
+          input.style.padding = "12px"; input.style.border = "1px solid var(--border)";
           input.style.borderRadius = "8px"; input.style.background = "var(--input-bg)"; input.style.color = "var(--text)";
           input.oninput = (e) => { itemNames[i] = e.target.value; };
           grid.appendChild(input);
@@ -238,7 +240,7 @@
         document.getElementById("settingsLayer").style.display = "none";
       };
       document.getElementById("clearAllBtn").onclick = () => {
-        if(confirm("全データを消去しますか？")) {
+        if(confirm("全ての記録を消去しますか？")) {
           const tx = db.transaction("items", "readwrite");
           tx.objectStore("items").clear();
           tx.oncomplete = () => location.reload();
@@ -251,7 +253,7 @@
         activeIdx = idx;
         try {
           stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
+            video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
           });
           document.getElementById("cameraView").srcObject = stream;
           document.getElementById("cameraLayer").style.display = "block";
@@ -273,31 +275,32 @@
         const sBox = document.querySelector('.shutter-box');
         const sRect = sBox.getBoundingClientRect();
         
-        // ビデオの実際の解像度と、画面上の表示サイズの比率
         const scaleX = video.videoWidth / vRect.width;
         const scaleY = video.videoHeight / vRect.height;
 
-        // ガイド枠の中心点に基づいて切り抜く
+        // ガイド枠の中心から切り抜く
         const cropW = sRect.width * scaleX;
         const cropH = sRect.height * scaleY;
         const cropX = (video.videoWidth - cropW) / 2;
         const cropY = (video.videoHeight - cropH) / 2;
 
-        const targetW = 800;
+        // 解像度を1200pxにアップ
+        const targetW = 1200;
         const targetH = (sRect.height / sRect.width) * targetW;
         
         canvas.width = targetW;
         canvas.height = targetH;
         
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85); // 圧縮率も少し改善
         saveDBItem(activeIdx, { photo: dataUrl });
         updatePhotoUI(activeIdx, dataUrl);
         
         stopCamera();
       };
-
     })();
   </script>
 </body>
