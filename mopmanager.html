@@ -3,31 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOP MANAGER - Right Focus</title>
+    <title>MOP MANAGER - Pro Custom</title>
     <style>
         :root { --blue: #2563eb; --green: #059669; --orange: #ea580c; --slate: #334155; }
         
-        /* 全体のレイアウト設定 */
         body { 
             background: #e2e8f0; 
             font-family: sans-serif; 
-            margin: 0; 
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end; /* 右寄せを実行 */
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            align-items: flex-end; /* 右寄せ */
             min-height: 100vh;
         }
 
-        /* 操作パネル本体のコンテナ */
         .app-container {
             width: 100%;
-            max-width: 480px; /* スマホの「いい感じ」の幅に固定 */
+            max-width: 480px; /* スマホ幅に固定 */
             background: #f1f5f9;
             min-height: 100vh;
-            padding: 10px;
+            padding: 10px 10px 300px 10px; /* 下部にテンキー分の余白 */
             box-sizing: border-box;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.1); /* 右寄せを際立たせる影 */
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            position: relative;
         }
 
         .card { background: white; border-radius: 14px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; overflow: hidden; }
@@ -39,9 +36,9 @@
         input, select { 
             width: 100%; border: 3px solid #e2e8f0; border-radius: 10px; 
             padding: 15px 10px; font-size: 28px; font-weight: 900; 
-            box-sizing: border-box; color: var(--slate); 
+            box-sizing: border-box; color: var(--slate); outline: none;
         }
-        select { font-size: 20px; height: 60px; }
+        input:focus { border-color: var(--blue); background: #eff6ff; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 10px; margin-top: 15px; }
@@ -51,7 +48,26 @@
         .res-amari { background: #fff7ed; border: 2px solid #fed7aa; border-radius: 8px; }
         
         .settings { background: #1e293b; color: white; padding: 20px; border-radius: 14px; margin-bottom: 16px; display: none; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* テンキーのスタイル */
+        .keypad {
+            position: fixed; bottom: 0; right: 0;
+            width: 100%; max-width: 480px;
+            background: #cbd5e1;
+            display: none; /* 初期は非表示 */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px; padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .key {
+            background: white; border: none; border-radius: 8px;
+            padding: 20px; font-size: 24px; font-weight: 900;
+            color: var(--slate); box-shadow: 0 2px 0 #94a3b8;
+        }
+        .key:active { background: #e2e8f0; transform: translateY(2px); box-shadow: none; }
+        .key-del { background: #fecaca; color: #b91c1c; }
     </style>
 </head>
 <body>
@@ -62,6 +78,11 @@
         </div>
 
         <div id="settings" class="settings">
+            <h3 style="margin-top:0;">オプション</h3>
+            <label style="color:white; display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="showKeypad" onchange="toggleKeypadView()" style="width:25px; height:25px;"> テンキーを表示する
+            </label>
+            <hr style="border:0; border-top:1px solid #475569; margin:20px 0;">
             <h3 style="margin-top:0;">品名登録</h3>
             <div style="display:flex; gap:8px; margin-bottom:15px;">
                 <input id="newName" type="text" placeholder="品名" style="font-size:18px; flex:2;">
@@ -76,17 +97,17 @@
             <div class="header-1">SET 1</div>
             <div class="p-4">
                 <label>元の総枚数</label>
-                <input type="number" id="total1" oninput="calculate(1)" placeholder="0" autofocus>
+                <input type="number" id="total1" oninput="calculate(1)" onfocus="setFocus(this)" placeholder="0">
                 <div class="grid">
                     <div>
                         <select id="sel1A" onchange="calculate(1)"></select>
                         <label style="margin-top:10px;">ケースA</label>
-                        <input type="number" id="cA1" oninput="calculate(1, 'A')" placeholder="0">
+                        <input type="number" id="cA1" oninput="calculate(1, 'A')" onfocus="setFocus(this)" placeholder="0">
                     </div>
                     <div>
                         <select id="sel1B" onchange="calculate(1)"></select>
                         <label style="margin-top:10px;">ケースB</label>
-                        <input type="number" id="cB1" oninput="calculate(1, 'B')" placeholder="0">
+                        <input type="number" id="cB1" oninput="calculate(1, 'B')" onfocus="setFocus(this)" placeholder="0">
                     </div>
                 </div>
                 <div class="result-grid">
@@ -101,17 +122,17 @@
             <div class="header-2">SET 2</div>
             <div class="p-4">
                 <label>元の総枚数</label>
-                <input type="number" id="total2" oninput="calculate(2)" placeholder="0">
+                <input type="number" id="total2" oninput="calculate(2)" onfocus="setFocus(this)" placeholder="0">
                 <div class="grid">
                     <div>
                         <select id="sel2A" onchange="calculate(2)"></select>
                         <label style="margin-top:10px;">ケースA</label>
-                        <input type="number" id="cA2" oninput="calculate(2, 'A')" placeholder="0">
+                        <input type="number" id="cA2" oninput="calculate(2, 'A')" onfocus="setFocus(this)" placeholder="0">
                     </div>
                     <div>
                         <select id="sel2B" onchange="calculate(2)"></select>
                         <label style="margin-top:10px;">ケースB</label>
-                        <input type="number" id="cB2" oninput="calculate(2, 'B')" placeholder="0">
+                        <input type="number" id="cB2" oninput="calculate(2, 'B')" onfocus="setFocus(this)" placeholder="0">
                     </div>
                 </div>
                 <div class="result-grid">
@@ -123,45 +144,79 @@
         </div>
     </div>
 
+    <div id="keypad" class="keypad">
+        <button class="key" onclick="pressKey('7')">7</button>
+        <button class="key" onclick="pressKey('8')">8</button>
+        <button class="key" onclick="pressKey('9')">9</button>
+        <button class="key" onclick="pressKey('4')">4</button>
+        <button class="key" onclick="pressKey('5')">5</button>
+        <button class="key" onclick="pressKey('6')">6</button>
+        <button class="key" onclick="pressKey('1')">1</button>
+        <button class="key" onclick="pressKey('2')">2</button>
+        <button class="key" onclick="pressKey('3')">3</button>
+        <button class="key" onclick="pressKey('0')">0</button>
+        <button class="key" onclick="pressKey('00')">00</button>
+        <button class="key key-del" onclick="pressKey('del')">消去</button>
+    </div>
+
     <script>
-        const defaultMasters = [
-            {id:1, n:"LaLa", q:50}, {id:2, n:"BSC", q:50}, {id:3, n:"PFM", q:80}, {id:4, n:"POMSS", q:50}, {id:5, n:"SSS", q:100}
-        ];
+        const defaultMasters = [{id:1,n:"LaLa",q:50},{id:2,n:"BSC",q:50},{id:3,n:"PFM",q:80},{id:4,n:"POMSS",q:50},{id:5,n:"SSS",q:100}];
         let masters = JSON.parse(localStorage.getItem('mop_m')) || defaultMasters;
+        let lastFocusedInput = null;
+
+        function setFocus(el) { lastFocusedInput = el; }
+
+        function pressKey(val) {
+            if(!lastFocusedInput) return;
+            if(val === 'del') {
+                lastFocusedInput.value = '';
+            } else {
+                lastFocusedInput.value += val;
+            }
+            // 各種計算をトリガー
+            const id = lastFocusedInput.id;
+            const setNum = id.includes('1') ? 1 : 2;
+            const mode = id.startsWith('cA') ? 'A' : (id.startsWith('cB') ? 'B' : 'total');
+            calculate(setNum, mode);
+        }
+
+        function toggleKeypadView() {
+            const isShow = document.getElementById('showKeypad').checked;
+            document.getElementById('keypad').style.display = isShow ? 'grid' : 'none';
+            localStorage.setItem('mop_keypad', isShow);
+        }
+
         function toggleSettings() {
             const s = document.getElementById('settings');
             s.style.display = s.style.display === 'block' ? 'none' : 'block';
             renderMasters();
         }
+
         function resetToDefault() {
-            if(confirm("品名リストを初期化しますか？")) {
-                masters = [...defaultMasters]; save(); renderMasters(); updateSelects();
-            }
+            if(confirm("初期化しますか？")) { masters = [...defaultMasters]; save(); renderMasters(); updateSelects(); }
         }
+
         function addMaster() {
-            const n = document.getElementById('newName').value;
-            const q = parseInt(document.getElementById('newQty').value);
-            if(n && q) {
-                masters.push({id: Date.now(), n, q});
-                document.getElementById('newName').value = ''; document.getElementById('newQty').value = '';
-                save(); renderMasters(); updateSelects();
-            }
+            const n = document.getElementById('newName').value, q = parseInt(document.getElementById('newQty').value);
+            if(n && q) { masters.push({id: Date.now(), n, q}); save(); renderMasters(); updateSelects(); }
         }
+
         function renderMasters() {
-            const list = document.getElementById('masterList');
-            list.innerHTML = masters.map(m => `
+            document.getElementById('masterList').innerHTML = masters.map(m => `
                 <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #475569;">
                     <span>${m.n} (${m.q}枚)</span>
                     <span onclick="delMaster(${m.id})" style="color:#f87171; font-weight:bold;">削除</span>
                 </div>
             `).join('');
         }
+
         function delMaster(id) {
             if(masters.length <= 1) return;
-            masters = masters.filter(m => m.id !== id);
-            save(); renderMasters(); updateSelects();
+            masters = masters.filter(m => m.id !== id); save(); renderMasters(); updateSelects();
         }
+
         function save() { localStorage.setItem('mop_m', JSON.stringify(masters)); }
+
         function updateSelects() {
             ['sel1A', 'sel1B', 'sel2A', 'sel2B'].forEach(id => {
                 const el = document.getElementById(id);
@@ -169,18 +224,16 @@
                 el.innerHTML = masters.map(m => `<option value="${m.id}">${m.n}</option>`).join('');
                 if(current) el.value = current;
             });
-            if(!document.getElementById('sel1A').value && masters.length > 0) {
-                document.getElementById('sel1A').value = 1; document.getElementById('sel1B').value = 2;
-                document.getElementById('sel2A').value = 1; document.getElementById('sel2B').value = 2;
-            }
         }
+
         function calculate(num, mode = 'total') {
             const t = parseInt(document.getElementById('total' + num).value) || 0;
             const mA = masters.find(m => m.id == document.getElementById('sel' + num + 'A').value);
             const mB = masters.find(m => m.id == document.getElementById('sel' + num + 'B').value);
-            const pA = mA ? mA.q : 0; const pB = mB ? mB.q : 0;
+            const pA = mA ? mA.q : 0, pB = mB ? mB.q : 0;
             let nA = parseInt(document.getElementById('cA' + num).value) || 0;
             let nB = parseInt(document.getElementById('cB' + num).value) || 0;
+
             if (mode === 'total') {
                 nA = pA > 0 ? Math.floor(t / pA) : 0;
                 nB = pB > 0 ? Math.floor((t - nA * pA) / pB) : 0;
@@ -195,6 +248,11 @@
             document.getElementById('kB' + num).innerText = nB * pB;
             document.getElementById('am' + num).innerText = t - (nA * pA) - (nB * pB);
         }
+
+        // 初期設定の読み込み
+        const savedKeypad = localStorage.getItem('mop_keypad') === 'true';
+        document.getElementById('showKeypad').checked = savedKeypad;
+        if(savedKeypad) document.getElementById('keypad').style.display = 'grid';
         updateSelects();
     </script>
 </body>
