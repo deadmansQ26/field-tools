@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOP MANAGER - Compact Input</title>
+    <title>MOP MANAGER - PWA Edition</title>
     <style>
         :root { --blue: #2563eb; --green: #059669; --orange: #ea580c; --slate: #334155; }
         
         body { 
-            background: #e2e8f0; 
+            background: #f1f5f9; /* ウィンドウいっぱいに背景色を表示 */
             font-family: sans-serif; 
             margin: 0; padding: 0;
-            display: flex; flex-direction: column;
-            align-items: flex-end; /* 右寄せ */
+            display: flex;
+            justify-content: center; /* 枠の中で中央に配置 */
             min-height: 100vh;
         }
 
+        /* 右寄せを廃止し、ウィンドウ幅に100%追従する構造 */
         .app-container {
             width: 100%;
-            max-width: 480px; /* スマホ幅に固定 */
-            background: #f1f5f9;
-            min-height: 100vh;
-            padding: 10px 10px 180px 10px; /* 下部の余白をテンキーに合わせて縮小 */
+            max-width: 100%; /* 枠の幅を最大限活用 */
+            padding: 10px 10px 180px 10px;
             box-sizing: border-box;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
             position: relative;
         }
 
@@ -35,9 +33,7 @@
         
         input, select { 
             width: 100%; border: 3px solid #e2e8f0; border-radius: 10px; 
-            padding: 12px 10px; /* 少しスリムに */
-            font-size: 24px; /* 少し小さく */
-            font-weight: 900; 
+            padding: 12px 10px; font-size: 24px; font-weight: 900; 
             box-sizing: border-box; color: var(--slate); outline: none;
         }
         input:focus { border-color: var(--blue); background: #eff6ff; }
@@ -51,31 +47,26 @@
         
         .settings { background: #1e293b; color: white; padding: 15px; border-radius: 14px; margin-bottom: 16px; display: none; }
         
-        /* コンパクト・テンキーのスタイル */
+        /* テンキー：ウィンドウ幅に合わせて伸縮 */
         .keypad {
-            position: fixed; bottom: 0; right: 0;
-            width: 100%; max-width: 480px;
+            position: fixed; bottom: 0; left: 0;
+            width: 100%;
             background: #cbd5e1;
-            display: none; /* 初期は非表示 */
+            display: none;
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px; /* 隙間を詰める */
-            padding: 10px; /* 余白を詰める */
+            gap: 5px; padding: 10px;
             box-sizing: border-box;
             box-shadow: 0 -3px 15px rgba(0,0,0,0.2);
             z-index: 1000;
-            border-radius: 14px 14px 0 0; /* 上部を丸く */
+            border-radius: 14px 14px 0 0;
         }
         .key {
             background: white; border: none; border-radius: 8px;
-            padding: 12px; /* ボタンを小さく */
-            font-size: 18px; /* 文字を小さく */
-            font-weight: 900;
+            padding: 12px; font-size: 18px; font-weight: 900;
             color: var(--slate); box-shadow: 0 2px 0 #94a3b8;
         }
         .key:active { background: #e2e8f0; transform: translateY(1px); box-shadow: none; }
         .key-del { background: #fecaca; color: #b91c1c; font-size: 16px; }
-        
-        /* 0と00を横並びにするための調整 */
         .key-0 { grid-column: 1 / 2; }
         .key-00 { grid-column: 2 / 3; }
     </style>
@@ -83,14 +74,14 @@
 <body>
     <div class="app-container">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 5px;">
-            <h2 style="margin:0; font-size:22px; font-weight:900; color:var(--slate);">MOP MANAGER</h2>
+            <h2 style="margin:0; font-size:20px; font-weight:900; color:var(--slate);">MOP MANAGER</h2>
             <button onclick="toggleSettings()" style="background:var(--slate); color:white; border:none; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:bold;">設定</button>
         </div>
 
         <div id="settings" class="settings">
             <h3 style="margin-top:0; font-size:18px;">オプション</h3>
             <label style="color:white; display:flex; align-items:center; gap:8px; font-size:14px;">
-                <input type="checkbox" id="showKeypad" onchange="toggleKeypadView()" style="width:20px; height:20px;"> 入力ボタンを表示する
+                <input type="checkbox" id="showKeypad" onchange="toggleKeypadView()" style="width:20px; height:20px;"> 入力ボタンを表示
             </label>
             <hr style="border:0; border-top:1px solid #475569; margin:15px 0;">
             <h3 style="margin-top:0; font-size:18px;">品名登録</h3>
@@ -99,8 +90,8 @@
                 <input id="newQty" type="number" placeholder="入数" style="font-size:16px; flex:1;">
                 <button onclick="addMaster()" style="background:var(--blue); border:none; color:white; padding:0 15px; border-radius:8px; font-size:20px;">＋</button>
             </div>
-            <div id="masterList" style="font-size:16px; max-height:150px; overflow-y:auto; background:rgba(255,255,255,0.05); border-radius:8px;"></div>
-            <button onclick="resetToDefault()" style="background:#f87171; color:white; border:none; padding:10px; border-radius:6px; font-size:14px; font-weight:bold; width:100%; margin-top:15px;">初期状態に戻す</button>
+            <div id="masterList" style="font-size:14px; max-height:120px; overflow-y:auto; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom: 10px;"></div>
+            <button onclick="resetToDefault()" style="background:#f87171; color:white; border:none; padding:10px; border-radius:6px; font-size:14px; font-weight:bold; width:100%;">初期化</button>
         </div>
 
         <div class="card" style="border-top: 6px solid var(--blue);">
@@ -111,13 +102,11 @@
                 <div class="grid">
                     <div>
                         <select id="sel1A" onchange="calculate(1)"></select>
-                        <label style="margin-top:10px;">ケースA</label>
-                        <input type="number" id="cA1" oninput="calculate(1, 'A')" onfocus="setFocus(this)" placeholder="0">
+                        <input type="number" id="cA1" oninput="calculate(1, 'A')" onfocus="setFocus(this)" placeholder="0" style="margin-top:10px;">
                     </div>
                     <div>
                         <select id="sel1B" onchange="calculate(1)"></select>
-                        <label style="margin-top:10px;">ケースB</label>
-                        <input type="number" id="cB1" oninput="calculate(1, 'B')" onfocus="setFocus(this)" placeholder="0">
+                        <input type="number" id="cB1" oninput="calculate(1, 'B')" onfocus="setFocus(this)" placeholder="0" style="margin-top:10px;">
                     </div>
                 </div>
                 <div class="result-grid">
@@ -136,13 +125,11 @@
                 <div class="grid">
                     <div>
                         <select id="sel2A" onchange="calculate(2)"></select>
-                        <label style="margin-top:10px;">ケースA</label>
-                        <input type="number" id="cA2" oninput="calculate(2, 'A')" onfocus="setFocus(this)" placeholder="0">
+                        <input type="number" id="cA2" oninput="calculate(2, 'A')" onfocus="setFocus(this)" placeholder="0" style="margin-top:10px;">
                     </div>
                     <div>
                         <select id="sel2B" onchange="calculate(2)"></select>
-                        <label style="margin-top:10px;">ケースB</label>
-                        <input type="number" id="cB2" oninput="calculate(2, 'B')" onfocus="setFocus(this)" placeholder="0">
+                        <input type="number" id="cB2" oninput="calculate(2, 'B')" onfocus="setFocus(this)" placeholder="0" style="margin-top:10px;">
                     </div>
                 </div>
                 <div class="result-grid">
@@ -155,28 +142,18 @@
     </div>
 
     <div id="keypad" class="keypad">
-        <button class="key" onclick="pressKey('7')">7</button>
-        <button class="key" onclick="pressKey('8')">8</button>
-        <button class="key" onclick="pressKey('9')">9</button>
-        <button class="key" onclick="pressKey('4')">4</button>
-        <button class="key" onclick="pressKey('5')">5</button>
-        <button class="key" onclick="pressKey('6')">6</button>
-        <button class="key" onclick="pressKey('1')">1</button>
-        <button class="key" onclick="pressKey('2')">2</button>
-        <button class="key" onclick="pressKey('3')">3</button>
-        <button class="key key-0" onclick="pressKey('0')">0</button>
-        <button class="key key-00" onclick="pressKey('00')">00</button>
-        <button class="key key-del" onclick="pressKey('del')">消去</button>
+        <button class="key" onclick="pressKey('7')">7</button><button class="key" onclick="pressKey('8')">8</button><button class="key" onclick="pressKey('9')">9</button>
+        <button class="key" onclick="pressKey('4')">4</button><button class="key" onclick="pressKey('5')">5</button><button class="key" onclick="pressKey('6')">6</button>
+        <button class="key" onclick="pressKey('1')">1</button><button class="key" onclick="pressKey('2')">2</button><button class="key" onclick="pressKey('3')">3</button>
+        <button class="key key-0" onclick="pressKey('0')">0</button><button class="key key-00" onclick="pressKey('00')">00</button><button class="key key-del" onclick="pressKey('del')">消</button>
     </div>
 
     <script>
-        // JSロジックは以前と同じ（フォーカス管理、計算ロジック）
         const defaultMasters = [{id:1,n:"LaLa",q:50},{id:2,n:"BSC",q:50},{id:3,n:"PFM",q:80},{id:4,n:"POMSS",q:50},{id:5,n:"SSS",q:100}];
         let masters = JSON.parse(localStorage.getItem('mop_m')) || defaultMasters;
         let lastFocusedInput = null;
 
         function setFocus(el) { lastFocusedInput = el; }
-
         function pressKey(val) {
             if(!lastFocusedInput) return;
             if(val === 'del') { lastFocusedInput.value = ''; } 
@@ -210,9 +187,9 @@
 
         function renderMasters() {
             document.getElementById('masterList').innerHTML = masters.map(m => `
-                <div style="display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #475569; font-size:14px;">
+                <div style="display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #475569; color:white;">
                     <span>${m.n} (${m.q}枚)</span>
-                    <span onclick="delMaster(${m.id})" style="color:#f87171; font-weight:bold;">削除</span>
+                    <span onclick="delMaster(${m.id})" style="color:#f87171; font-weight:bold; cursor:pointer;">×</span>
                 </div>
             `).join('');
         }
@@ -256,7 +233,6 @@
             document.getElementById('am' + num).innerText = t - (nA * pA) - (nB * pB);
         }
 
-        // 初期設定の読み込み
         const savedKeypad = localStorage.getItem('mop_keypad') === 'true';
         document.getElementById('showKeypad').checked = savedKeypad;
         if(savedKeypad) document.getElementById('keypad').style.display = 'grid';
