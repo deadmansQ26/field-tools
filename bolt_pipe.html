@@ -1,7 +1,3 @@
-import google.ds_python_interpreter as ide
-
-# HTMLコードを生成してユーザーに提供する
-html_content = """
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -94,7 +90,7 @@ const pipeData = [
     {a: 100, b: 4,     bText: "4",     out: "114.3"}
 ];
 
-// ボルト計算イベント
+// ボルト計算
 document.getElementById('boltInput').addEventListener('input', (e) => {
     const v = e.target.value;
     const res = document.getElementById('boltResult');
@@ -122,7 +118,7 @@ document.getElementById('pipeA').addEventListener('input', (e) => {
     }
 });
 
-// 配管B入力（小数対応）
+// 配管B入力
 document.getElementById('pipeB').addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
     const found = pipeData.find(d => d.b === v);
@@ -135,7 +131,6 @@ document.getElementById('pipeB').addEventListener('input', (e) => {
 function updatePipeRes(d) {
     let tip = "";
     if (d.b % 1 !== 0) {
-        // 小数の場合の計算のヒントを表示
         const decimalPart = d.b % 1;
         let frac = "";
         if(decimalPart === 0.125) frac = "1/8";
@@ -143,15 +138,12 @@ function updatePipeRes(d) {
         if(decimalPart === 0.375) frac = "3/8";
         if(decimalPart === 0.5)   frac = "1/2";
         if(decimalPart === 0.75)  frac = "3/4";
-        
         const whole = Math.floor(d.b) === 0 ? "" : Math.floor(d.b);
         tip = `<div class="calc-tip">💡 計算: ${d.b} は <b>${whole} ${frac}</b> と入力・表記します</div>`;
     }
-
     document.getElementById('pipeResult').innerText = `${d.a}A = ${d.bText}B`;
     document.getElementById('pipeSub').innerHTML = `外径: <b>${d.out} mm</b><br>インチ換算: ${d.b}" ${tip}`;
 }
 </script>
 </body>
 </html>
-"""
