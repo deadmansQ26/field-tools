@@ -1,25 +1,33 @@
+import google.ds_python_interpreter as ide
+
+# HTMLコードを生成してユーザーに提供する
+html_content = """
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ボルト配管変換</title>
+    <title>ボルト・配管・フランジ変換</title>
     
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2345/2345454.png">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2345/2345454.png">
 
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin-top: 0; font-size: 1.2rem; border-left: 5px solid #28a745; padding-left: 10px; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 15px; margin: 0; color: #2c3e50; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e0e0e0; }
+        h2 { margin-top: 0; font-size: 1.1rem; border-left: 5px solid #2ecc71; padding-left: 10px; color: #27ae60; }
         .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #666; }
-        input { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; background: #fff; }
-        input:focus { border-color: #28a745; outline: none; }
-        .result-area { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-        .main-val { font-size: 1.4rem; font-weight: bold; color: #28a745; margin-bottom: 5px; }
-        .sub-val { font-size: 0.9rem; color: #666; line-height: 1.5; }
-        .error-text { color: #d9534f; font-weight: bold; }
+        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #7f8c8d; }
+        input { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ecf0f1; border-radius: 8px; box-sizing: border-box; background: #fff; transition: 0.2s; }
+        input:focus { border-color: #2ecc71; outline: none; background: #f9fffb; }
+        .result-area { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #f0f0f0; min-height: 60px; }
+        .main-val { font-size: 1.3rem; font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+        .sub-val { font-size: 0.85rem; color: #7f8c8d; line-height: 1.6; }
+        .info-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 4px; }
+        .tag-old { background: #eee; color: #666; }
+        .tag-flange { background: #e74c3c; color: white; }
+        .calc-tip { margin-top: 10px; font-size: 0.8rem; color: #3498db; background: #ebf5fb; padding: 8px; border-radius: 4px; }
+        b { color: #333; }
     </style>
 </head>
 <body>
@@ -27,73 +35,86 @@
 <div class="card">
     <h2>🔩 ボルト径 → 工具サイズ</h2>
     <div class="input-group">
-        <label>ボルト径を入力 (M)</label>
-        <input type="number" id="boltInput" placeholder="例: 10" inputmode="decimal">
+        <label>ボルト径 (M)</label>
+        <input type="number" id="boltInput" placeholder="例: 12" inputmode="decimal">
     </div>
-    <div class="result-area" id="boltResult">
+    <div id="boltResult" class="result-area">
         <div class="main-val">M -- → -- mm</div>
         <div class="sub-val">数値を入力してください</div>
     </div>
 </div>
 
 <div class="card">
-    <h2>🚰 配管サイズ (A ⇄ B)</h2>
+    <h2>🚰 配管サイズ (小数・分数対応)</h2>
     <div class="input-group">
-        <label>A呼称 (ミリ)</label>
-        <input type="text" id="pipeA" placeholder="例: 25" inputmode="decimal">
+        <label>A呼称 (ミリ入力: 25 など)</label>
+        <input type="number" id="pipeA" placeholder="例: 25" inputmode="decimal">
     </div>
     <div class="input-group">
-        <label>B呼称 (インチ)</label>
-        <input type="text" id="pipeB" placeholder="例: 1" inputmode="decimal">
+        <label>B呼称 (インチ入力: 1.25 など)</label>
+        <input type="number" id="pipeB" placeholder="例: 1.25" inputmode="decimal">
     </div>
-    <div class="result-area">
+    <div id="pipeResultArea" class="result-area">
         <div id="pipeResult" class="main-val">サイズを入力</div>
         <div id="pipeSub" class="sub-val">外径データなどがここに表示されます</div>
     </div>
 </div>
 
 <script>
-// ボルト・ナットデータ
+// ボルトデータ（標準、旧JIS、フランジ用の多層構造）
 const boltData = {
-    3: {main: 5.5, sub: ""},
-    4: {main: 7, sub: ""},
-    5: {main: 8, sub: ""},
-    6: {main: 10, sub: ""},
-    8: {main: 13, sub: "<span class='error-text'>※旧JIS/小形: 12mm</span>"},
-    10: {main: 17, sub: "<span class='error-text'>※旧JIS/小形: 14mm</span>"},
-    12: {main: 19, sub: "<span class='error-text'>※旧JIS/小形: 17mm</span>"},
-    14: {main: 22, sub: "<span class='error-text'>※旧JIS/小形: 19mm</span>"},
-    16: {main: 24, sub: "<span class='error-text'>※旧JIS/小形: 21mm</span>"},
-    20: {main: 30, sub: "※旧JIS: 26mm"},
-    24: {main: 36, sub: "※旧JIS: 32mm"}
+    3:  { std: 5.5, old: "", flange: "" },
+    4:  { std: 7,   old: "", flange: "" },
+    5:  { std: 8,   old: "", flange: "" },
+    6:  { std: 10,  old: "", flange: "" },
+    8:  { std: 13,  old: "12 (旧/小形)", flange: "" },
+    10: { std: 17,  old: "14 (旧/小形)", flange: "19 (フランジ用)" },
+    12: { std: 19,  old: "17 (旧/小形)", flange: "21 (フランジ用)" },
+    14: { std: 22,  old: "19 (旧/小形)", flange: "" },
+    16: { std: 24,  old: "21 (旧/小形)", flange: "26 (フランジ用)" },
+    20: { std: 30,  old: "26 (旧JIS)", flange: "32 (フランジ用)" },
+    22: { std: 32,  old: "29 (旧JIS)", flange: "36 (フランジ用)" },
+    24: { std: 36,  old: "32 (旧JIS)", flange: "41 (フランジ用)" }
 };
 
 // 配管データ
 const pipeData = [
-    {a: "6", b: "1/8", out: "10.5"}, {a: "8", b: "1/4", out: "13.8"},
-    {a: "10", b: "3/8", out: "17.3"}, {a: "15", b: "1/2", out: "21.7"},
-    {a: "20", b: "3/4", out: "27.2"}, {a: "25", b: "1", out: "34.0"},
-    {a: "32", b: "1 1/4", out: "42.7"}, {a: "40", b: "1 1/2", out: "48.6"},
-    {a: "50", b: "2", out: "60.5"}, {a: "65", b: "2 1/2", out: "76.3"},
-    {a: "80", b: "3", out: "89.1"}, {a: "100", b: "4", out: "114.3"}
+    {a: 6,   b: 0.125, bText: "1/8",   out: "10.5"},
+    {a: 8,   b: 0.25,  bText: "1/4",   out: "13.8"},
+    {a: 10,  b: 0.375, bText: "3/8",   out: "17.3"},
+    {a: 15,  b: 0.5,   bText: "1/2",   out: "21.7"},
+    {a: 20,  b: 0.75,  bText: "3/4",   out: "27.2"},
+    {a: 25,  b: 1,     bText: "1",     out: "34.0"},
+    {a: 32,  b: 1.25,  bText: "1 1/4", out: "42.7"},
+    {a: 40,  b: 1.5,   bText: "1 1/2", out: "48.6"},
+    {a: 50,  b: 2,     bText: "2",     out: "60.5"},
+    {a: 65,  b: 2.5,   bText: "2 1/2", out: "76.3"},
+    {a: 80,  b: 3,     bText: "3",     out: "89.1"},
+    {a: 90,  b: 3.5,   bText: "3 1/2", out: "101.6"},
+    {a: 100, b: 4,     bText: "4",     out: "114.3"}
 ];
 
-// ボルト計算
+// ボルト計算イベント
 document.getElementById('boltInput').addEventListener('input', (e) => {
     const v = e.target.value;
     const res = document.getElementById('boltResult');
-    if(boltData[v]) {
-        res.innerHTML = `<div class="main-val">M${v} → 工具 ${boltData[v].main} mm</div>
-                         <div class="sub-val">${boltData[v].sub}<br>ナットも基本同サイズです</div>`;
+    const data = boltData[v];
+    
+    if(data) {
+        let html = `<div class="main-val">M${v} → 工具 ${data.std} mm</div>`;
+        html += `<div class="sub-val">`;
+        if(data.old) html += `<span class="info-tag tag-old">旧JIS</span> <b>${data.old}mm</b><br>`;
+        if(data.flange) html += `<span class="info-tag tag-flange">重要</span> <b>${data.flange}</b><br>`;
+        html += `ナットも基本同サイズです</div>`;
+        res.innerHTML = html;
     } else {
-        res.innerHTML = `<div class="main-val">M${v} → ???</div>
-                         <div class="sub-val">未登録の規格です</div>`;
+        res.innerHTML = `<div class="main-val">M${v} → ???</div><div class="sub-val">未登録の規格です</div>`;
     }
 });
 
 // 配管A入力
 document.getElementById('pipeA').addEventListener('input', (e) => {
-    const v = e.target.value;
+    const v = parseFloat(e.target.value);
     const found = pipeData.find(d => d.a === v);
     if(found) {
         document.getElementById('pipeB').value = found.b;
@@ -101,9 +122,9 @@ document.getElementById('pipeA').addEventListener('input', (e) => {
     }
 });
 
-// 配管B入力
+// 配管B入力（小数対応）
 document.getElementById('pipeB').addEventListener('input', (e) => {
-    const v = e.target.value;
+    const v = parseFloat(e.target.value);
     const found = pipeData.find(d => d.b === v);
     if(found) {
         document.getElementById('pipeA').value = found.a;
@@ -112,9 +133,25 @@ document.getElementById('pipeB').addEventListener('input', (e) => {
 });
 
 function updatePipeRes(d) {
-    document.getElementById('pipeResult').innerText = `${d.a}A = ${d.b}B`;
-    document.getElementById('pipeSub').innerHTML = `外径: <b>${d.out} mm</b>`;
+    let tip = "";
+    if (d.b % 1 !== 0) {
+        // 小数の場合の計算のヒントを表示
+        const decimalPart = d.b % 1;
+        let frac = "";
+        if(decimalPart === 0.125) frac = "1/8";
+        if(decimalPart === 0.25)  frac = "1/4";
+        if(decimalPart === 0.375) frac = "3/8";
+        if(decimalPart === 0.5)   frac = "1/2";
+        if(decimalPart === 0.75)  frac = "3/4";
+        
+        const whole = Math.floor(d.b) === 0 ? "" : Math.floor(d.b);
+        tip = `<div class="calc-tip">💡 計算: ${d.b} は <b>${whole} ${frac}</b> と入力・表記します</div>`;
+    }
+
+    document.getElementById('pipeResult').innerText = `${d.a}A = ${d.bText}B`;
+    document.getElementById('pipeSub').innerHTML = `外径: <b>${d.out} mm</b><br>インチ換算: ${d.b}" ${tip}`;
 }
 </script>
 </body>
 </html>
+"""
