@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>現場レコーダー V3</title>
+  <title>現場レコーダー V3.1</title>
   
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='5' fill='%23f0f6fc' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='35' x2='75' y2='35' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='55' x2='75' y2='55' stroke='%2330363d' stroke-width='5'/><line x1='25' y1='75' x2='55' y2='75' stroke='%2330363d' stroke-width='5'/></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='15' fill='%23ffffff'/><rect x='20' y='25' width='60' height='55' rx='2' fill='none' stroke='%23000' stroke-width='6'/><line x1='30' y1='40' x2='70' y2='40' stroke='%23000' stroke-width='6'/><line x1='30' y1='55' x2='70' y2='55' stroke='%23000' stroke-width='6'/><line x1='30' y1='70' x2='55' y2='70' stroke='%23000' stroke-width='6'/><rect x='40' y='10' width='20' height='10' rx='2' fill='%23333'/></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     :root {
@@ -19,80 +18,84 @@
       --bg: #000000; --card: #161b22; --text: #f0f6fc; --muted: #8b949e;
       --primary: #58a6ff; --danger: #f85149; --border: #30363d; --input-bg: #0d1117;
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
-    body { padding: 10px; min-height: 100dvh; }
-
-    .app { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
-    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-    
-    .titlebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    h1 { margin: 0; font-size: 1rem; }
-    .header-actions { display: flex; gap: 6px; }
-    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 0.75rem; cursor: pointer; font-weight: bold; }
-
-    .list-wrap { display: flex; flex-direction: column; gap: 12px; }
-    .item { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 15px; position: relative; }
-    .item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
-    
-    /* 写真エリア：さらに拡大 */
-    .photo-area { 
-      width: 100%; height: 240px; background: var(--input-bg); border: 1px solid var(--border); 
-      border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 12px;
-      cursor: zoom-in;
+    * { 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent; 
+      user-select: none; /* 長押し選択を無効化 */
+      -webkit-touch-callout: none; 
     }
-    .photo-area img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.2s; }
-    /* タップ中だけ簡易ズーム（物理的に拡大） */
-    .photo-area img:active { transform: scale(2.0); }
-    
-    /* メモ欄：文字を大きく、高さを確保 */
-    .controls { display: grid; grid-template-columns: 1fr 70px 55px; gap: 10px; height: 60px; }
-    .memo-input { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 0 15px; font-size: 1.3rem; font-weight: bold; }
+    html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    body { padding: 8px; min-height: 100dvh; }
 
-    .btn { border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .btn-camera { background: var(--primary); color: white; }
-    .cam-icon { width: 28px; height: 20px; border: 2.5px solid white; border-radius: 4px; position: relative; }
-    .cam-icon::before { content: ""; position: absolute; top: -6px; left: 7px; width: 10px; height: 4px; background: white; border-radius: 2px 2px 0 0; }
-    .btn-clear { background: var(--danger); color: white; }
-    .x-icon { position: relative; width: 20px; height: 20px; }
-    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 9px; left: 0; width: 20px; height: 3px; background: white; transform: rotate(45deg); }
+    .app { width: 100%; max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+    
+    .titlebar { display: flex; align-items: center; justify-content: space-between; }
+    h1 { margin: 0; font-size: 0.9rem; opacity: 0.8; }
+    .header-actions { display: flex; gap: 4px; }
+    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.7rem; font-weight: bold; }
+
+    .item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; position: relative; }
+    .item-title { font-size: 1rem; font-weight: bold; margin-bottom: 6px; color: var(--primary); }
+    
+    /* 写真エリア：高さを少し抑えてスマホ収まりを改善 */
+    .photo-area { 
+      width: 100%; height: 180px; background: var(--input-bg); border: 1px solid var(--border); 
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;
+    }
+    .photo-area img { width: 100%; height: 100%; object-fit: contain; }
+    
+    /* 操作系：メモを主役にしつつボタンを右に集約 */
+    .controls { display: flex; gap: 6px; height: 50px; }
+    .memo-input { 
+      flex: 1; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); 
+      border-radius: 8px; padding: 0 10px; font-size: 1.3rem; font-weight: bold; width: 0; /* flex縮小用 */
+    }
+
+    .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; min-width: 50px; }
+    .btn-camera { background: var(--primary); color: white; flex: 0 0 60px; }
+    .btn-clear { background: var(--danger); color: white; flex: 0 0 50px; }
+    
+    .cam-icon { width: 24px; height: 18px; border: 2px solid white; border-radius: 3px; position: relative; }
+    .cam-icon::before { content: ""; position: absolute; top: -5px; left: 6px; width: 8px; height: 3px; background: white; }
+    .x-icon { position: relative; width: 18px; height: 18px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 8px; left: 0; width: 18px; height: 2px; background: white; transform: rotate(45deg); }
     .x-icon::after { transform: rotate(-45deg); }
 
-    .qr-container { display: flex; flex-direction: column; align-items: center; padding: 15px; text-align: center; gap: 8px; margin-top: 10px; }
-    #qrcode { background: white; padding: 8px; border-radius: 8px; }
-
-    /* カメラレイヤー：枠を巨大正方形に */
-    .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; overflow: hidden; }
-    #cameraView { width: 100%; height: 100%; object-fit: cover; }
-    
-    .shutter-box { 
-      position: absolute; 
-      top: 50%; left: 50%; 
-      transform: translate(-50%, -50%);
-      width: 320px; height: 320px; /* 巨大正方形 */
-      border: 4px solid #58a6ff; 
-      pointer-events: none; 
-      box-shadow: 0 0 0 2000px rgba(0,0,0,0.6); 
-      border-radius: 12px; 
-      z-index: 1001;
+    /* 全画面ズームレイヤー */
+    #zoomLayer { 
+      position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; 
+      display: none; align-items: center; justify-content: center; padding: 10px;
     }
-    .shutter-box::after { content: "ターゲットを中央に"; position: absolute; top: -35px; left: 0; color: #58a6ff; font-size: 1rem; font-weight: bold; width: 200px; }
-    
-    .camera-ui { position: fixed; bottom: 40px; left: 0; width: 100%; display: flex; gap: 15px; padding: 0 25px; z-index: 1002; }
+    #zoomImg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-    .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
-    .settings-card { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 450px; margin: auto; }
+    /* カメラレイヤー：中央巨大正方形 */
+    .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; }
+    #cameraView { width: 100%; height: 100%; object-fit: cover; }
+    .shutter-box { 
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 85vw; height: 85vw; max-width: 350px; max-height: 350px;
+      border: 3px solid #58a6ff; box-shadow: 0 0 0 2000px rgba(0,0,0,0.6); border-radius: 10px; z-index: 1001;
+    }
+    .camera-ui { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; gap: 15px; padding: 0 20px; z-index: 1002; }
+
+    .qr-container { display: flex; flex-direction: column; align-items: center; padding: 10px; gap: 4px; margin-top: 5px; opacity: 0.7; }
+    #qrcode img { width: 80px; height: 80px; }
+
+    .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; }
+    .settings-card { background: var(--card); border-radius: 12px; padding: 15px; width: 100%; max-width: 400px; margin: auto; max-height: 80vh; overflow-y: auto; }
   </style>
 </head>
-<body class="dark-mode">
+<body class="dark-mode" oncontextmenu="return false;">
+
   <div class="app">
     <header class="panel">
       <div class="titlebar">
-        <h1>現場レコーダー V3</h1>
+        <h1>REC V3.1</h1>
         <div class="header-actions">
-          <button id="toggleThemeBtn" class="head-btn">モード</button>
-          <button id="openSettingsBtn" class="head-btn">項目名</button>
-          <button id="clearAllBtn" class="head-btn">全消去</button>
+          <button id="toggleThemeBtn" class="head-btn">MODE</button>
+          <button id="openSettingsBtn" class="head-btn">SET</button>
+          <button id="clearAllBtn" class="head-btn">CLEAR</button>
         </div>
       </div>
     </header>
@@ -101,32 +104,34 @@
 
     <footer class="panel qr-container">
       <div id="qrcode"></div>
-      <div style="font-size:0.7rem; opacity:0.6;" id="urlText"></div>
     </footer>
   </div>
 
-  <div id="settingsLayer" class="settings-layer">
-    <div class="settings-card">
-      <h3 style="margin:0 0 15px 0;">項目名の設定</h3>
-      <div id="settingsGrid" style="display:grid; gap:8px;"></div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
-        <button id="cancelSettingsBtn" class="head-btn" style="height:50px;">戻る</button>
-        <button id="closeSettingsBtn" class="btn btn-camera" style="height:50px; font-weight:bold;">保存</button>
-      </div>
-    </div>
+  <div id="zoomLayer" onclick="this.style.display='none'">
+    <img id="zoomImg" src="">
   </div>
 
   <div id="cameraLayer" class="camera-layer">
     <video id="cameraView" autoplay playsinline muted></video>
     <div class="shutter-box"></div>
     <div class="camera-ui">
-      <button id="cancelBtn" class="btn btn-clear" style="flex:1; height:65px;"><div class="x-icon"></div></button>
-      <button id="shotBtn" class="btn btn-camera" style="flex:2; height:65px; font-weight:bold; font-size:1.3rem;">撮影</button>
+      <button id="cancelBtn" class="btn btn-clear" style="height:60px;"><div class="x-icon"></div></button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:1; height:60px; font-weight:bold;">撮影</button>
     </div>
     <canvas id="captureCanvas" style="display:none;"></canvas>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <div id="settingsLayer" class="settings-layer">
+    <div class="settings-card">
+      <h3 style="margin-top:0;">項目名設定</h3>
+      <div id="settingsGrid" style="display:grid; gap:6px;"></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+        <button id="cancelSettingsBtn" class="head-btn" style="height:44px;">戻る</button>
+        <button id="closeSettingsBtn" class="btn btn-camera" style="height:44px; font-weight:bold;">保存</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (() => {
       const ITEM_COUNT = 10;
@@ -136,21 +141,13 @@
       const request = indexedDB.open("GenbaRecorderDB", 1);
       request.onupgradeneeded = (e) => {
         db = e.target.result;
-        if (!db.objectStoreNames.contains("items")) {
-          db.createObjectStore("items", { keyPath: "id" });
-        }
+        if (!db.objectStoreNames.contains("items")) db.createObjectStore("items", { keyPath: "id" });
       };
-      request.onsuccess = (e) => {
-        db = e.target.result;
-        initApp();
-      };
+      request.onsuccess = (e) => { db = e.target.result; initApp(); };
 
       async function initApp() {
         render();
-        const currentURL = window.location.href;
-        document.getElementById("urlText").textContent = currentURL;
-        new QRCode(document.getElementById("qrcode"), { text: currentURL, width: 100, height: 100 });
-
+        new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 80, height: 80 });
         for (let i = 0; i < ITEM_COUNT; i++) {
           const data = await getDBItem(i);
           if (data) {
@@ -168,11 +165,11 @@
           div.className = "item";
           div.innerHTML = `
             <div class="item-title">${name}</div>
-            <div class="photo-area" id="photo-${i}" onclick="openCam(${i})">
-              <span style="color:var(--muted); font-size:0.9rem;">撮影する</span>
+            <div class="photo-area" id="photo-${i}" onclick="zoomPhoto(${i})">
+              <span style="color:var(--muted); font-size:0.8rem;">未撮影</span>
             </div>
             <div class="controls">
-              <input type="text" class="memo-input" id="memo-${i}" placeholder="値・メモ" oninput="saveMemo(${i}, this.value)">
+              <input type="text" class="memo-input" id="memo-${i}" placeholder="値" oninput="saveMemo(${i}, this.value)">
               <button class="btn btn-camera" onclick="openCam(${i})"><div class="cam-icon"></div></button>
               <button class="btn btn-clear" onclick="clearItem(${i})"><div class="x-icon"></div></button>
             </div>
@@ -180,6 +177,17 @@
           itemList.appendChild(div);
         });
       }
+
+      // 写真ズーム機能
+      window.zoomPhoto = async (i) => {
+        const data = await getDBItem(i);
+        if (data && data.photo) {
+          const layer = document.getElementById("zoomLayer");
+          const img = document.getElementById("zoomImg");
+          img.src = data.photo;
+          layer.style.display = "flex";
+        }
+      };
 
       function getDBItem(id) {
         return new Promise(resolve => {
@@ -206,7 +214,7 @@
         tx.objectStore("items").delete(i);
         tx.oncomplete = () => {
           document.getElementById(`memo-${i}`).value = "";
-          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.9rem;">撮影する</span>`;
+          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">未撮影</span>`;
         };
       };
 
@@ -221,10 +229,8 @@
         grid.innerHTML = "";
         itemNames.forEach((name, i) => {
           const input = document.createElement("input");
-          input.type = "text";
-          input.value = name;
-          input.style.padding = "12px"; input.style.border = "1px solid var(--border)";
-          input.style.borderRadius = "8px"; input.style.background = "var(--input-bg)"; input.style.color = "var(--text)";
+          input.type = "text"; input.value = name;
+          input.className = "memo-input"; input.style.fontSize = "1rem";
           input.oninput = (e) => { itemNames[i] = e.target.value; };
           grid.appendChild(input);
         });
@@ -233,22 +239,18 @@
       document.getElementById("closeSettingsBtn").onclick = () => {
         localStorage.setItem('genba_names', JSON.stringify(itemNames));
         document.getElementById("settingsLayer").style.display = "none";
-        render();
-        initApp();
+        render(); initApp();
       };
-      document.getElementById("cancelSettingsBtn").onclick = () => {
-        document.getElementById("settingsLayer").style.display = "none";
-      };
+      document.getElementById("cancelSettingsBtn").onclick = () => document.getElementById("settingsLayer").style.display = "none";
       document.getElementById("clearAllBtn").onclick = () => {
-        if(confirm("全ての記録を消去しますか？")) {
+        if(confirm("全消去しますか？")) {
           const tx = db.transaction("items", "readwrite");
           tx.objectStore("items").clear();
           tx.oncomplete = () => location.reload();
         }
       };
 
-      let activeIdx = null;
-      let stream = null;
+      let activeIdx = null; let stream = null;
       window.openCam = async (idx) => {
         activeIdx = idx;
         try {
@@ -257,7 +259,7 @@
           });
           document.getElementById("cameraView").srcObject = stream;
           document.getElementById("cameraLayer").style.display = "block";
-        } catch (e) { alert("カメラを起動できません"); }
+        } catch (e) { alert("カメラ起動失敗"); }
       };
 
       const stopCamera = () => {
@@ -270,35 +272,24 @@
         const video = document.getElementById("cameraView");
         const canvas = document.getElementById("captureCanvas");
         const ctx = canvas.getContext("2d");
-
+        const sBox = document.querySelector('.shutter-box').getBoundingClientRect();
         const vRect = video.getBoundingClientRect();
-        const sBox = document.querySelector('.shutter-box');
-        const sRect = sBox.getBoundingClientRect();
         
         const scaleX = video.videoWidth / vRect.width;
         const scaleY = video.videoHeight / vRect.height;
-
-        // ガイド枠の中心から切り抜く
-        const cropW = sRect.width * scaleX;
-        const cropH = sRect.height * scaleY;
+        const cropW = sBox.width * scaleX;
+        const cropH = sBox.height * scaleY;
         const cropX = (video.videoWidth - cropW) / 2;
         const cropY = (video.videoHeight - cropH) / 2;
 
-        // 解像度を1200pxにアップ
-        const targetW = 1200;
-        const targetH = (sRect.height / sRect.width) * targetW;
-        
-        canvas.width = targetW;
-        canvas.height = targetH;
-        
-        ctx.imageSmoothingEnabled = true;
+        const targetSize = 1200;
+        canvas.width = targetSize; canvas.height = targetSize;
         ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetSize, targetSize);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.85); // 圧縮率も少し改善
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
         saveDBItem(activeIdx, { photo: dataUrl });
         updatePhotoUI(activeIdx, dataUrl);
-        
         stopCamera();
       };
     })();
