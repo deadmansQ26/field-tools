@@ -3,22 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>MOP MANAGER</title>
-    
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
-
+    <title>MOP MANAGER - Right Focus</title>
     <style>
         :root { --blue: #2563eb; --green: #059669; --orange: #ea580c; --slate: #334155; }
-        body { background: #f1f5f9; font-family: sans-serif; margin: 0; padding: 10px; }
+        
+        /* 全体のレイアウト設定 */
+        body { 
+            background: #e2e8f0; 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* 右寄せを実行 */
+            min-height: 100vh;
+        }
+
+        /* 操作パネル本体のコンテナ */
+        .app-container {
+            width: 100%;
+            max-width: 480px; /* スマホの「いい感じ」の幅に固定 */
+            background: #f1f5f9;
+            min-height: 100vh;
+            padding: 10px;
+            box-sizing: border-box;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1); /* 右寄せを際立たせる影 */
+        }
+
         .card { background: white; border-radius: 14px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; overflow: hidden; }
         .header-1 { background: var(--blue); padding: 8px; color: white; text-align: center; font-size: 16px; font-weight: bold; }
         .header-2 { background: var(--green); padding: 8px; color: white; text-align: center; font-size: 16px; font-weight: bold; }
         .p-4 { padding: 16px; }
         label { display: block; font-size: 16px; font-weight: bold; color: #64748b; margin-bottom: 8px; }
         
-        /* 視認性向上のための巨大入力欄 */
         input, select { 
             width: 100%; border: 3px solid #e2e8f0; border-radius: 10px; 
             padding: 15px 10px; font-size: 28px; font-weight: 900; 
@@ -38,68 +55,70 @@
     </style>
 </head>
 <body>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 5px;">
-        <h2 style="margin:0; font-size:24px; font-weight:900; color:var(--slate);">MOP MANAGER</h2>
-        <button onclick="toggleSettings()" style="background:var(--slate); color:white; border:none; padding:10px 20px; border-radius:8px; font-size:16px; font-weight:bold;">設定</button>
-    </div>
-
-    <div id="settings" class="settings">
-        <h3 style="margin-top:0;">品名登録</h3>
-        <div style="display:flex; gap:8px; margin-bottom:15px;">
-            <input id="newName" type="text" placeholder="品名" style="font-size:18px; flex:2;">
-            <input id="newQty" type="number" placeholder="入数" style="font-size:18px; flex:1;">
-            <button onclick="addMaster()" style="background:var(--blue); border:none; color:white; padding:0 20px; border-radius:8px; font-size:24px;">＋</button>
+    <div class="app-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 5px;">
+            <h2 style="margin:0; font-size:24px; font-weight:900; color:var(--slate);">MOP MANAGER</h2>
+            <button onclick="toggleSettings()" style="background:var(--slate); color:white; border:none; padding:10px 20px; border-radius:8px; font-size:16px; font-weight:bold;">設定</button>
         </div>
-        <div id="masterList" style="font-size:18px; max-height:200px; overflow-y:auto;"></div>
-        <button onclick="resetToDefault()" style="background:#f87171; color:white; border:none; padding:12px; border-radius:6px; font-size:16px; font-weight:bold; width:100%; margin-top:15px;">初期状態に戻す</button>
-    </div>
 
-    <div class="card" style="border-top: 8px solid var(--blue);">
-        <div class="header-1">SET 1</div>
-        <div class="p-4">
-            <label>元の総枚数</label>
-            <input type="number" id="total1" oninput="calculate(1)" placeholder="0" autofocus>
-            <div class="grid">
-                <div>
-                    <select id="sel1A" onchange="calculate(1)"></select>
-                    <label style="margin-top:10px;">ケースA</label>
-                    <input type="number" id="cA1" oninput="calculate(1, 'A')" placeholder="0">
-                </div>
-                <div>
-                    <select id="sel1B" onchange="calculate(1)"></select>
-                    <label style="margin-top:10px;">ケースB</label>
-                    <input type="number" id="cB1" oninput="calculate(1, 'B')" placeholder="0">
-                </div>
+        <div id="settings" class="settings">
+            <h3 style="margin-top:0;">品名登録</h3>
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <input id="newName" type="text" placeholder="品名" style="font-size:18px; flex:2;">
+                <input id="newQty" type="number" placeholder="入数" style="font-size:18px; flex:1;">
+                <button onclick="addMaster()" style="background:var(--blue); border:none; color:white; padding:0 20px; border-radius:8px; font-size:24px;">＋</button>
             </div>
-            <div class="result-grid">
-                <div class="res-box"><span class="res-label">A確定</span><span id="kA1" class="res-val" style="color:var(--blue);">0</span></div>
-                <div class="res-box"><span class="res-label">B確定</span><span id="kB1" class="res-val" style="color:var(--green);">0</span></div>
-                <div class="res-box res-amari"><span class="res-label" style="color:var(--orange);">端数</span><span id="am1" class="res-val" style="color:var(--orange);">0</span></div>
+            <div id="masterList" style="font-size:18px; max-height:200px; overflow-y:auto;"></div>
+            <button onclick="resetToDefault()" style="background:#f87171; color:white; border:none; padding:12px; border-radius:6px; font-size:16px; font-weight:bold; width:100%; margin-top:15px;">初期状態に戻す</button>
+        </div>
+
+        <div class="card" style="border-top: 8px solid var(--blue);">
+            <div class="header-1">SET 1</div>
+            <div class="p-4">
+                <label>元の総枚数</label>
+                <input type="number" id="total1" oninput="calculate(1)" placeholder="0" autofocus>
+                <div class="grid">
+                    <div>
+                        <select id="sel1A" onchange="calculate(1)"></select>
+                        <label style="margin-top:10px;">ケースA</label>
+                        <input type="number" id="cA1" oninput="calculate(1, 'A')" placeholder="0">
+                    </div>
+                    <div>
+                        <select id="sel1B" onchange="calculate(1)"></select>
+                        <label style="margin-top:10px;">ケースB</label>
+                        <input type="number" id="cB1" oninput="calculate(1, 'B')" placeholder="0">
+                    </div>
+                </div>
+                <div class="result-grid">
+                    <div class="res-box"><span class="res-label">A確定</span><span id="kA1" class="res-val" style="color:var(--blue);">0</span></div>
+                    <div class="res-box"><span class="res-label">B確定</span><span id="kB1" class="res-val" style="color:var(--green);">0</span></div>
+                    <div class="res-box res-amari"><span class="res-label" style="color:var(--orange);">端数</span><span id="am1" class="res-val" style="color:var(--orange);">0</span></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="card" style="border-top: 8px solid var(--green);">
-        <div class="header-2">SET 2</div>
-        <div class="p-4">
-            <label>元の総枚数</label>
-            <input type="number" id="total2" oninput="calculate(2)" placeholder="0">
-            <div class="grid">
-                <div>
-                    <select id="sel2A" onchange="calculate(2)"></select>
-                    <label style="margin-top:10px;">ケースA</label>
-                    <input type="number" id="cA2" oninput="calculate(2, 'A')" placeholder="0">
+        <div class="card" style="border-top: 8px solid var(--green);">
+            <div class="header-2">SET 2</div>
+            <div class="p-4">
+                <label>元の総枚数</label>
+                <input type="number" id="total2" oninput="calculate(2)" placeholder="0">
+                <div class="grid">
+                    <div>
+                        <select id="sel2A" onchange="calculate(2)"></select>
+                        <label style="margin-top:10px;">ケースA</label>
+                        <input type="number" id="cA2" oninput="calculate(2, 'A')" placeholder="0">
+                    </div>
+                    <div>
+                        <select id="sel2B" onchange="calculate(2)"></select>
+                        <label style="margin-top:10px;">ケースB</label>
+                        <input type="number" id="cB2" oninput="calculate(2, 'B')" placeholder="0">
+                    </div>
                 </div>
-                <div>
-                    <select id="sel2B" onchange="calculate(2)"></select>
-                    <label style="margin-top:10px;">ケースB</label>
-                    <input type="number" id="cB2" oninput="calculate(2, 'B')" placeholder="0">
+                <div class="result-grid">
+                    <div class="res-box"><span class="res-label">A確定</span><span id="kA2" class="res-val" style="color:var(--blue);">0</span></div>
+                    <div class="res-box"><span class="res-label">B確定</span><span id="kB2" class="res-val" style="color:var(--green);">0</span></div>
+                    <div class="res-box res-amari"><span class="res-label" style="color:var(--orange);">端数</span><span id="am2" class="res-val" style="color:var(--orange);">0</span></div>
                 </div>
-            </div>
-            <div class="result-grid">
-                <div class="res-box"><span class="res-label">A確定</span><span id="kA2" class="res-val" style="color:var(--blue);">0</span></div>
-                <div class="res-box"><span class="res-label">B確定</span><span id="kB2" class="res-val" style="color:var(--green);">0</span></div>
-                <div class="res-box res-amari"><span class="res-label" style="color:var(--orange);">端数</span><span id="am2" class="res-val" style="color:var(--orange);">0</span></div>
             </div>
         </div>
     </div>
