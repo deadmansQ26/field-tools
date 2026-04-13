@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOP MANAGER - Pro Custom</title>
+    <title>MOP MANAGER - Compact Input</title>
     <style>
         :root { --blue: #2563eb; --green: #059669; --orange: #ea580c; --slate: #334155; }
         
@@ -21,7 +21,7 @@
             max-width: 480px; /* スマホ幅に固定 */
             background: #f1f5f9;
             min-height: 100vh;
-            padding: 10px 10px 300px 10px; /* 下部にテンキー分の余白 */
+            padding: 10px 10px 180px 10px; /* 下部の余白をテンキーに合わせて縮小 */
             box-sizing: border-box;
             box-shadow: -5px 0 15px rgba(0,0,0,0.1);
             position: relative;
@@ -35,65 +35,75 @@
         
         input, select { 
             width: 100%; border: 3px solid #e2e8f0; border-radius: 10px; 
-            padding: 15px 10px; font-size: 28px; font-weight: 900; 
+            padding: 12px 10px; /* 少しスリムに */
+            font-size: 24px; /* 少し小さく */
+            font-weight: 900; 
             box-sizing: border-box; color: var(--slate); outline: none;
         }
         input:focus { border-color: var(--blue); background: #eff6ff; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 10px; margin-top: 15px; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #f8fafc; padding: 12px; border-radius: 10px; margin-top: 15px; }
         .res-box { text-align: center; }
-        .res-label { font-size: 14px; color: #94a3b8; display: block; font-weight: bold; margin-bottom: 5px; }
-        .res-val { font-size: 28px; font-weight: 900; line-height: 1; }
+        .res-label { font-size: 13px; color: #94a3b8; display: block; font-weight: bold; margin-bottom: 3px; }
+        .res-val { font-size: 24px; font-weight: 900; line-height: 1; }
         .res-amari { background: #fff7ed; border: 2px solid #fed7aa; border-radius: 8px; }
         
-        .settings { background: #1e293b; color: white; padding: 20px; border-radius: 14px; margin-bottom: 16px; display: none; }
+        .settings { background: #1e293b; color: white; padding: 15px; border-radius: 14px; margin-bottom: 16px; display: none; }
         
-        /* テンキーのスタイル */
+        /* コンパクト・テンキーのスタイル */
         .keypad {
             position: fixed; bottom: 0; right: 0;
             width: 100%; max-width: 480px;
             background: #cbd5e1;
             display: none; /* 初期は非表示 */
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px; padding: 15px;
+            gap: 5px; /* 隙間を詰める */
+            padding: 10px; /* 余白を詰める */
             box-sizing: border-box;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 -3px 15px rgba(0,0,0,0.2);
             z-index: 1000;
+            border-radius: 14px 14px 0 0; /* 上部を丸く */
         }
         .key {
             background: white; border: none; border-radius: 8px;
-            padding: 20px; font-size: 24px; font-weight: 900;
+            padding: 12px; /* ボタンを小さく */
+            font-size: 18px; /* 文字を小さく */
+            font-weight: 900;
             color: var(--slate); box-shadow: 0 2px 0 #94a3b8;
         }
-        .key:active { background: #e2e8f0; transform: translateY(2px); box-shadow: none; }
-        .key-del { background: #fecaca; color: #b91c1c; }
+        .key:active { background: #e2e8f0; transform: translateY(1px); box-shadow: none; }
+        .key-del { background: #fecaca; color: #b91c1c; font-size: 16px; }
+        
+        /* 0と00を横並びにするための調整 */
+        .key-0 { grid-column: 1 / 2; }
+        .key-00 { grid-column: 2 / 3; }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 5px;">
-            <h2 style="margin:0; font-size:24px; font-weight:900; color:var(--slate);">MOP MANAGER</h2>
-            <button onclick="toggleSettings()" style="background:var(--slate); color:white; border:none; padding:10px 20px; border-radius:8px; font-size:16px; font-weight:bold;">設定</button>
+            <h2 style="margin:0; font-size:22px; font-weight:900; color:var(--slate);">MOP MANAGER</h2>
+            <button onclick="toggleSettings()" style="background:var(--slate); color:white; border:none; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:bold;">設定</button>
         </div>
 
         <div id="settings" class="settings">
-            <h3 style="margin-top:0;">オプション</h3>
-            <label style="color:white; display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="showKeypad" onchange="toggleKeypadView()" style="width:25px; height:25px;"> テンキーを表示する
+            <h3 style="margin-top:0; font-size:18px;">オプション</h3>
+            <label style="color:white; display:flex; align-items:center; gap:8px; font-size:14px;">
+                <input type="checkbox" id="showKeypad" onchange="toggleKeypadView()" style="width:20px; height:20px;"> 入力ボタンを表示する
             </label>
-            <hr style="border:0; border-top:1px solid #475569; margin:20px 0;">
-            <h3 style="margin-top:0;">品名登録</h3>
+            <hr style="border:0; border-top:1px solid #475569; margin:15px 0;">
+            <h3 style="margin-top:0; font-size:18px;">品名登録</h3>
             <div style="display:flex; gap:8px; margin-bottom:15px;">
-                <input id="newName" type="text" placeholder="品名" style="font-size:18px; flex:2;">
-                <input id="newQty" type="number" placeholder="入数" style="font-size:18px; flex:1;">
-                <button onclick="addMaster()" style="background:var(--blue); border:none; color:white; padding:0 20px; border-radius:8px; font-size:24px;">＋</button>
+                <input id="newName" type="text" placeholder="品名" style="font-size:16px; flex:2;">
+                <input id="newQty" type="number" placeholder="入数" style="font-size:16px; flex:1;">
+                <button onclick="addMaster()" style="background:var(--blue); border:none; color:white; padding:0 15px; border-radius:8px; font-size:20px;">＋</button>
             </div>
-            <div id="masterList" style="font-size:18px; max-height:200px; overflow-y:auto;"></div>
-            <button onclick="resetToDefault()" style="background:#f87171; color:white; border:none; padding:12px; border-radius:6px; font-size:16px; font-weight:bold; width:100%; margin-top:15px;">初期状態に戻す</button>
+            <div id="masterList" style="font-size:16px; max-height:150px; overflow-y:auto; background:rgba(255,255,255,0.05); border-radius:8px;"></div>
+            <button onclick="resetToDefault()" style="background:#f87171; color:white; border:none; padding:10px; border-radius:6px; font-size:14px; font-weight:bold; width:100%; margin-top:15px;">初期状態に戻す</button>
         </div>
 
-        <div class="card" style="border-top: 8px solid var(--blue);">
+        <div class="card" style="border-top: 6px solid var(--blue);">
             <div class="header-1">SET 1</div>
             <div class="p-4">
                 <label>元の総枚数</label>
@@ -118,7 +128,7 @@
             </div>
         </div>
 
-        <div class="card" style="border-top: 8px solid var(--green);">
+        <div class="card" style="border-top: 6px solid var(--green);">
             <div class="header-2">SET 2</div>
             <div class="p-4">
                 <label>元の総枚数</label>
@@ -154,12 +164,13 @@
         <button class="key" onclick="pressKey('1')">1</button>
         <button class="key" onclick="pressKey('2')">2</button>
         <button class="key" onclick="pressKey('3')">3</button>
-        <button class="key" onclick="pressKey('0')">0</button>
-        <button class="key" onclick="pressKey('00')">00</button>
+        <button class="key key-0" onclick="pressKey('0')">0</button>
+        <button class="key key-00" onclick="pressKey('00')">00</button>
         <button class="key key-del" onclick="pressKey('del')">消去</button>
     </div>
 
     <script>
+        // JSロジックは以前と同じ（フォーカス管理、計算ロジック）
         const defaultMasters = [{id:1,n:"LaLa",q:50},{id:2,n:"BSC",q:50},{id:3,n:"PFM",q:80},{id:4,n:"POMSS",q:50},{id:5,n:"SSS",q:100}];
         let masters = JSON.parse(localStorage.getItem('mop_m')) || defaultMasters;
         let lastFocusedInput = null;
@@ -168,12 +179,8 @@
 
         function pressKey(val) {
             if(!lastFocusedInput) return;
-            if(val === 'del') {
-                lastFocusedInput.value = '';
-            } else {
-                lastFocusedInput.value += val;
-            }
-            // 各種計算をトリガー
+            if(val === 'del') { lastFocusedInput.value = ''; } 
+            else { lastFocusedInput.value += val; }
             const id = lastFocusedInput.id;
             const setNum = id.includes('1') ? 1 : 2;
             const mode = id.startsWith('cA') ? 'A' : (id.startsWith('cB') ? 'B' : 'total');
@@ -203,7 +210,7 @@
 
         function renderMasters() {
             document.getElementById('masterList').innerHTML = masters.map(m => `
-                <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #475569;">
+                <div style="display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #475569; font-size:14px;">
                     <span>${m.n} (${m.q}枚)</span>
                     <span onclick="delMaster(${m.id})" style="color:#f87171; font-weight:bold;">削除</span>
                 </div>
