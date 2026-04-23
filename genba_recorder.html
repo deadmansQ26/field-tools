@@ -1,100 +1,314 @@
-<style>
-  /* ... (前略) ... */
-  .btn-torch { background: #e3b341; color: #000; flex: 0 0 50px; font-size: 1.2rem; }
-  .btn-torch.active { background: #ffee00; box-shadow: 0 0 15px #ffee00; }
-</style>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>現場レコーダー V3.4 (Torch Mode)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<div id="cameraLayer" class="camera-layer">
-  <video id="cameraView" autoplay playsinline muted></video>
-  <div class="shutter-box"></div>
-  <div class="camera-ui">
-    <button id="cancelBtn" class="btn btn-clear" style="height:60px;"><div class="x-icon"></div></button>
-    <button id="torchBtn" class="btn btn-torch" style="height:60px; display:none;">💡</button>
-    <button id="shotBtn" class="btn btn-camera" style="flex:1; height:60px; font-weight:bold;">撮影</button>
+  <style>
+    :root {
+      --bg: #ffffff; --card: #ffffff; --text: #000000; --muted: #666666;
+      --primary: #1f6feb; --danger: #d1242f; --border: #d0d7de; --input-bg: #f6f8fa;
+      --input-text: #000000;
+    }
+    body.dark-mode {
+      --bg: #000000; --card: #161b22; --text: #f0f6fc; --muted: #8b949e;
+      --primary: #58a6ff; --danger: #f85149; --border: #30363d; --input-bg: #0d1117;
+      --input-text: #f0f6fc;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-touch-callout: none; }
+    input { user-select: auto !important; -webkit-user-select: auto !important; }
+
+    html, body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    body { padding: 8px; min-height: 100dvh; }
+
+    .app { width: 100%; max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+    
+    .titlebar { display: flex; align-items: center; justify-content: space-between; }
+    h1 { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+    .header-actions { display: flex; gap: 4px; }
+    .head-btn { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.7rem; font-weight: bold; }
+
+    .item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; position: relative; }
+    .item-title { font-size: 1rem; font-weight: bold; margin-bottom: 6px; color: var(--primary); }
+    
+    .photo-area { 
+      width: 100%; height: 180px; background: var(--input-bg); border: 1px solid var(--border); 
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;
+    }
+    .photo-area img { width: 100%; height: 100%; object-fit: contain; }
+    
+    .controls { display: flex; gap: 6px; height: 50px; }
+    .memo-input { 
+      flex: 1; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border); 
+      border-radius: 8px; padding: 0 10px; font-size: 1.3rem; font-weight: bold; width: 0;
+    }
+    .memo-input:focus { border-color: var(--primary); outline: none; background: var(--bg); }
+
+    .btn { border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; min-width: 50px; }
+    .btn-camera { background: var(--primary); color: white; flex: 0 0 60px; }
+    .btn-clear { background: var(--danger); color: white; flex: 0 0 50px; }
+    .btn-torch { background: #444; color: #fff; flex: 0 0 55px; font-size: 1.4rem; display: none; }
+    .btn-torch.active { background: #e3b341; color: #000; box-shadow: 0 0 10px #ffee00; }
+    
+    .cam-icon { width: 24px; height: 18px; border: 2px solid white; border-radius: 3px; position: relative; }
+    .cam-icon::before { content: ""; position: absolute; top: -5px; left: 6px; width: 8px; height: 3px; background: white; }
+    .x-icon { position: relative; width: 18px; height: 18px; }
+    .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 8px; left: 0; width: 18px; height: 2px; background: white; transform: rotate(45deg); }
+    .x-icon::after { transform: rotate(-45deg); }
+
+    #zoomLayer { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: center; justify-content: center; }
+    #zoomImg { max-width: 100%; max-height: 100%; }
+
+    .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; }
+    #cameraView { width: 100%; height: 100%; object-fit: cover; }
+    .shutter-box { 
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 85vw; height: 85vw; max-width: 350px; max-height: 350px;
+      border: 3px solid var(--primary); box-shadow: 0 0 0 2000px rgba(0,0,0,0.6); border-radius: 10px;
+    }
+    .camera-ui { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; gap: 10px; padding: 0 20px; z-index: 1002; }
+
+    .qr-container { display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 10px; }
+    #qrcode { background: white; padding: 10px; border-radius: 8px; }
+
+    .settings-layer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; padding: 20px; overflow-y: auto; }
+    .settings-card { background: var(--card); border-radius: 12px; padding: 15px; width: 100%; max-width: 400px; margin: auto; }
+    .setting-input { width: 100%; padding: 12px; margin-bottom: 8px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border); border-radius: 8px; font-size: 16px; }
+  </style>
+</head>
+<body class="dark-mode" oncontextmenu="return false;">
+
+  <div class="app">
+    <header class="panel">
+      <div class="titlebar">
+        <h1>GENBA REC V3.4</h1>
+        <div class="header-actions">
+          <button id="toggleThemeBtn" class="head-btn">MODE</button>
+          <button id="openSettingsBtn" class="head-btn">SET</button>
+          <button id="clearAllBtn" class="head-btn">CLEAR</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="itemList" class="list-wrap"></div>
+    <footer class="panel qr-container">
+      <div id="qrcode"></div>
+    </footer>
   </div>
-  <canvas id="captureCanvas" style="display:none;"></canvas>
-</div>
 
-<script>
-  (() => {
-    /* ... (IndexedDB等の初期化は共通) ... */
+  <div id="zoomLayer" onclick="this.style.display='none'"><img id="zoomImg"></div>
 
-    let activeIdx = null; 
-    let stream = null;
-    let track = null; // ライト制御用
-    let torchActive = false;
+  <div id="cameraLayer" class="camera-layer">
+    <video id="cameraView" autoplay playsinline muted></video>
+    <div class="shutter-box"></div>
+    <div class="camera-ui">
+      <button id="cancelBtn" class="btn btn-clear" style="height:60px;"><div class="x-icon"></div></button>
+      <button id="torchBtn" class="btn btn-torch" style="height:60px;">💡</button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:1; height:60px; font-weight:bold;">撮影</button>
+    </div>
+    <canvas id="captureCanvas" style="display:none;"></canvas>
+  </div>
 
-    window.openCam = async (idx) => {
-      activeIdx = idx;
-      torchActive = false;
-      const torchBtn = document.getElementById("torchBtn");
-      torchBtn.classList.remove("active");
+  <div id="settingsLayer" class="settings-layer">
+    <div class="settings-card">
+      <h3 style="margin-top:0; color:var(--text);">項目名設定</h3>
+      <div id="settingsGrid"></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+        <button id="cancelSettingsBtn" class="head-btn" style="height:44px;">戻る</button>
+        <button id="closeSettingsBtn" class="btn btn-camera" style="height:44px; font-weight:bold;">保存</button>
+      </div>
+    </div>
+  </div>
 
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
+  <script>
+    (() => {
+      const ITEM_COUNT = 10;
+      let db = null;
+      let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
+      let stream = null;
+      let track = null;
+      let torchActive = false;
+
+      const request = indexedDB.open("GenbaRecorderDB", 1);
+      request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("items")) db.createObjectStore("items", { keyPath: "id" });
+      };
+      request.onsuccess = (e) => { db = e.target.result; initApp(); };
+
+      async function initApp() {
+        render();
+        new QRCode(document.getElementById("qrcode"), { 
+          text: window.location.href, width: 140, height: 140, correctLevel : QRCode.CorrectLevel.L 
         });
-        const video = document.getElementById("cameraView");
-        video.srcObject = stream;
-        
-        // トラックを取得してライトが使えるか確認 (Android/Chrome用)
-        track = stream.getVideoTracks()[0];
-        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-        
-        if (capabilities.torch) {
-          torchBtn.style.display = "flex"; // ライト対応ならボタン表示
-        } else {
-          torchBtn.style.display = "none"; // 非対応（iPhone等）なら隠す
+        for (let i = 0; i < ITEM_COUNT; i++) {
+          const data = await getDBItem(i);
+          if (data) {
+            if (data.photo) updatePhotoUI(i, data.photo);
+            if (data.memo) document.getElementById(`memo-${i}`).value = data.memo;
+          }
         }
-
-        document.getElementById("cameraLayer").style.display = "block";
-      } catch (e) { alert("カメラ起動失敗"); }
-    };
-
-    // ライトのON/OFF切り替え演算
-    document.getElementById("torchBtn").onclick = async function() {
-      if (!track) return;
-      try {
-        torchActive = !torchActive;
-        await track.applyConstraints({
-          advanced: [{ torch: torchActive }]
-        });
-        this.classList.toggle("active", torchActive);
-      } catch (e) {
-        console.error("Torch error:", e);
       }
-    };
 
-    const stopCamera = () => {
-      if(track) track.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{}); // ライト消灯
-      if(stream) stream.getTracks().forEach(t => t.stop());
-      document.getElementById("cameraLayer").style.display = "none";
-      torchActive = false;
-    };
-    
-    document.getElementById("cancelBtn").onclick = stopCamera;
-    
-    /* ... (撮影処理は共通) ... */
-    document.getElementById("shotBtn").onclick = () => {
-      // 撮影実行
-      const video = document.getElementById("cameraView");
-      const canvas = document.getElementById("captureCanvas");
-      const ctx = canvas.getContext("2d");
-      const sBox = document.querySelector('.shutter-box').getBoundingClientRect();
-      const vRect = video.getBoundingClientRect();
-      const scaleX = video.videoWidth / vRect.width;
-      const scaleY = video.videoHeight / vRect.height;
-      const cropW = sBox.width * scaleX;
-      const cropH = sBox.height * scaleY;
-      const cropX = (video.videoWidth - cropW) / 2;
-      const cropY = (video.videoHeight - cropH) / 2;
-      const targetSize = 1200;
-      canvas.width = targetSize; canvas.height = targetSize;
-      ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetSize, targetSize);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-      saveDBItem(activeIdx, { photo: dataUrl });
-      updatePhotoUI(activeIdx, dataUrl);
-      stopCamera(); // 撮影後にカメラとライトを終了
-    };
-  })();
-</script>
+      function render() {
+        const itemList = document.getElementById("itemList");
+        itemList.innerHTML = "";
+        itemNames.forEach((name, i) => {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <div class="item-title">${name}</div>
+            <div class="photo-area" id="photo-${i}" onclick="zoomPhoto(${i})">
+              <span style="color:var(--muted); font-size:0.8rem;">未撮影</span>
+            </div>
+            <div class="controls">
+              <input type="text" class="memo-input" id="memo-${i}" placeholder="値" oninput="saveMemo(${i}, this.value)">
+              <button class="btn btn-camera" onclick="openCam(${i})"><div class="cam-icon"></div></button>
+              <button class="btn btn-clear" onclick="clearItem(${i})"><div class="x-icon"></div></button>
+            </div>
+          `;
+          itemList.appendChild(div);
+        });
+      }
+
+      window.zoomPhoto = async (i) => {
+        const data = await getDBItem(i);
+        if (data && data.photo) {
+          document.getElementById("zoomImg").src = data.photo;
+          document.getElementById("zoomLayer").style.display = "flex";
+        }
+      };
+
+      function getDBItem(id) {
+        return new Promise(resolve => {
+          const tx = db.transaction("items", "readonly");
+          const req = tx.objectStore("items").get(id);
+          req.onsuccess = () => resolve(req.result);
+        });
+      }
+
+      function saveDBItem(id, data) {
+        return new Promise(async resolve => {
+          const existing = await getDBItem(id) || { id: id };
+          const updated = { ...existing, ...data };
+          const tx = db.transaction("items", "readwrite");
+          tx.objectStore("items").put(updated);
+          tx.oncomplete = () => resolve();
+        });
+      }
+
+      window.saveMemo = (i, val) => saveDBItem(i, { memo: val });
+      window.clearItem = async (i) => {
+        const tx = db.transaction("items", "readwrite");
+        tx.objectStore("items").delete(i);
+        tx.oncomplete = () => {
+          document.getElementById(`memo-${i}`).value = "";
+          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">未撮影</span>`;
+        };
+      };
+
+      function updatePhotoUI(i, dataUrl) {
+        const area = document.getElementById(`photo-${i}`);
+        if(area) area.innerHTML = `<img src="${dataUrl}">`;
+      }
+
+      document.getElementById("toggleThemeBtn").onclick = () => document.body.classList.toggle("dark-mode");
+      
+      document.getElementById("openSettingsBtn").onclick = () => {
+        const grid = document.getElementById("settingsGrid");
+        grid.innerHTML = "";
+        itemNames.forEach((name, i) => {
+          const input = document.createElement("input");
+          input.type = "text"; input.value = name;
+          input.className = "setting-input";
+          input.oninput = (e) => { itemNames[i] = e.target.value; };
+          grid.appendChild(input);
+        });
+        document.getElementById("settingsLayer").style.display = "block";
+      };
+
+      document.getElementById("closeSettingsBtn").onclick = () => {
+        localStorage.setItem('genba_names', JSON.stringify(itemNames));
+        document.getElementById("settingsLayer").style.display = "none";
+        render(); initApp();
+      };
+
+      document.getElementById("cancelSettingsBtn").onclick = () => document.getElementById("settingsLayer").style.display = "none";
+
+      document.getElementById("clearAllBtn").onclick = () => {
+        if(confirm("全消去しますか？")) {
+          const tx = db.transaction("items", "readwrite");
+          tx.objectStore("items").clear();
+          tx.oncomplete = () => location.reload();
+        }
+      };
+
+      let activeIdx = null;
+      window.openCam = async (idx) => {
+        activeIdx = idx;
+        torchActive = false;
+        const torchBtn = document.getElementById("torchBtn");
+        torchBtn.classList.remove("active");
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
+          });
+          const video = document.getElementById("cameraView");
+          video.srcObject = stream;
+          
+          track = stream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+          torchBtn.style.display = capabilities.torch ? "flex" : "none";
+
+          document.getElementById("cameraLayer").style.display = "block";
+        } catch (e) { alert("カメラ起動失敗"); }
+      };
+
+      const stopCamera = () => {
+        if(track && torchActive) track.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{});
+        if(stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById("cameraLayer").style.display = "none";
+        torchActive = false;
+      };
+
+      document.getElementById("cancelBtn").onclick = stopCamera;
+
+      document.getElementById("torchBtn").onclick = async function() {
+        if (!track) return;
+        try {
+          torchActive = !torchActive;
+          await track.applyConstraints({ advanced: [{ torch: torchActive }] });
+          this.classList.toggle("active", torchActive);
+        } catch (e) { console.error(e); }
+      };
+
+      document.getElementById("shotBtn").onclick = () => {
+        const video = document.getElementById("cameraView");
+        const canvas = document.getElementById("captureCanvas");
+        const ctx = canvas.getContext("2d");
+        const sBox = document.querySelector('.shutter-box').getBoundingClientRect();
+        const vRect = video.getBoundingClientRect();
+        const scaleX = video.videoWidth / vRect.width;
+        const scaleY = video.videoHeight / vRect.height;
+        const cropW = sBox.width * scaleX;
+        const cropH = sBox.height * scaleY;
+        const cropX = (video.videoWidth - cropW) / 2;
+        const cropY = (video.videoHeight - cropH) / 2;
+        const targetSize = 1200;
+        canvas.width = targetSize; canvas.height = targetSize;
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetSize, targetSize);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        saveDBItem(activeIdx, { photo: dataUrl });
+        updatePhotoUI(activeIdx, dataUrl);
+        stopCamera();
+      };
+    })();
+  </script>
+</body>
+</html>
