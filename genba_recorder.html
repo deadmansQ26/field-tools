@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>現場レコーダー V3.4 (Torch Mode)</title>
+  <title> V3.5 (1800px High-Res)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
   <style>
     :root {
       --bg: #ffffff; --card: #ffffff; --text: #000000; --muted: #666666;
@@ -61,8 +60,12 @@
     .x-icon::before, .x-icon::after { content: ""; position: absolute; top: 8px; left: 0; width: 18px; height: 2px; background: white; transform: rotate(45deg); }
     .x-icon::after { transform: rotate(-45deg); }
 
-    #zoomLayer { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: center; justify-content: center; }
-    #zoomImg { max-width: 100%; max-height: 100%; }
+    /*  */
+    #zoomLayer { 
+      position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; 
+      display: none; align-items: center; justify-content: center; overflow: hidden; touch-action: none;
+    }
+    #zoomImg { transition: transform 0.1s ease-out; cursor: grab; max-width: 100%; max-height: 100%; }
 
     .camera-layer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; }
     #cameraView { width: 100%; height: 100%; object-fit: cover; }
@@ -86,7 +89,7 @@
   <div class="app">
     <header class="panel">
       <div class="titlebar">
-        <h1>GENBA REC V3.4</h1>
+        <h1>GENBA REC V3.5 (1800px)</h1>
         <div class="header-actions">
           <button id="toggleThemeBtn" class="head-btn">MODE</button>
           <button id="openSettingsBtn" class="head-btn">SET</button>
@@ -101,26 +104,29 @@
     </footer>
   </div>
 
-  <div id="zoomLayer" onclick="this.style.display='none'"><img id="zoomImg"></div>
+  <div id="zoomLayer">
+    <img id="zoomImg" draggable="false">
+    <div style="position:absolute; bottom:20px; left:0; width:100%; text-align:center; color:white; font-size:0.7rem; pointer-events:none; opacity:0.6;"> /  / </div>
+  </div>
 
   <div id="cameraLayer" class="camera-layer">
     <video id="cameraView" autoplay playsinline muted></video>
     <div class="shutter-box"></div>
     <div class="camera-ui">
       <button id="cancelBtn" class="btn btn-clear" style="height:60px;"><div class="x-icon"></div></button>
-      <button id="torchBtn" class="btn btn-torch" style="height:60px;">💡</button>
-      <button id="shotBtn" class="btn btn-camera" style="flex:1; height:60px; font-weight:bold;">撮影</button>
+      <button id="torchBtn" class="btn btn-torch" style="height:60px;"></button>
+      <button id="shotBtn" class="btn btn-camera" style="flex:1; height:60px; font-weight:bold;"></button>
     </div>
     <canvas id="captureCanvas" style="display:none;"></canvas>
   </div>
 
   <div id="settingsLayer" class="settings-layer">
     <div class="settings-card">
-      <h3 style="margin-top:0; color:var(--text);">項目名設定</h3>
+      <h3 style="margin-top:0; color:var(--text);"></h3>
       <div id="settingsGrid"></div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
-        <button id="cancelSettingsBtn" class="head-btn" style="height:44px;">戻る</button>
-        <button id="closeSettingsBtn" class="btn btn-camera" style="height:44px; font-weight:bold;">保存</button>
+        <button id="cancelSettingsBtn" class="head-btn" style="height:44px;"></button>
+        <button id="closeSettingsBtn" class="btn btn-camera" style="height:44px; font-weight:bold;"></button>
       </div>
     </div>
   </div>
@@ -129,7 +135,7 @@
     (() => {
       const ITEM_COUNT = 10;
       let db = null;
-      let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `項目${i+1}`);
+      let itemNames = JSON.parse(localStorage.getItem('genba_names')) || Array.from({length: ITEM_COUNT}, (_, i) => `${i+1}`);
       let stream = null;
       let track = null;
       let torchActive = false;
@@ -164,10 +170,10 @@
           div.innerHTML = `
             <div class="item-title">${name}</div>
             <div class="photo-area" id="photo-${i}" onclick="zoomPhoto(${i})">
-              <span style="color:var(--muted); font-size:0.8rem;">未撮影</span>
+              <span style="color:var(--muted); font-size:0.8rem;"></span>
             </div>
             <div class="controls">
-              <input type="text" class="memo-input" id="memo-${i}" placeholder="値" oninput="saveMemo(${i}, this.value)">
+              <input type="text" class="memo-input" id="memo-${i}" placeholder="" oninput="saveMemo(${i}, this.value)">
               <button class="btn btn-camera" onclick="openCam(${i})"><div class="cam-icon"></div></button>
               <button class="btn btn-clear" onclick="clearItem(${i})"><div class="x-icon"></div></button>
             </div>
@@ -176,14 +182,62 @@
         });
       }
 
+      // ---  ---
+      const zLayer = document.getElementById("zoomLayer");
+      const zImg = document.getElementById("zoomImg");
+      let scale = 1, lastScale = 1, startDist = 0;
+      let posX = 0, posY = 0, startX = 0, startY = 0;
+      let lastTapTime = 0;
+
       window.zoomPhoto = async (i) => {
         const data = await getDBItem(i);
         if (data && data.photo) {
-          document.getElementById("zoomImg").src = data.photo;
-          document.getElementById("zoomLayer").style.display = "flex";
+          zImg.src = data.photo;
+          scale = 1; posX = 0; posY = 0;
+          updateZoomStyle();
+          zLayer.style.display = "flex";
         }
       };
 
+      zLayer.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+          startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+          lastScale = scale;
+        } else if (e.touches.length === 1) {
+          // 
+          const now = Date.now();
+          if (now - lastTapTime < 300) {
+            scale = 1; posX = 0; posY = 0;
+            updateZoomStyle();
+          } else {
+            startX = e.touches[0].pageX - posX;
+            startY = e.touches[0].pageY - posY;
+          }
+          lastTapTime = now;
+        }
+      }, {passive: false});
+
+      zLayer.addEventListener("touchmove", (e) => {
+        e.preventDefault();
+        if (e.touches.length === 2) {
+          const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+          scale = Math.min(Math.max(1, lastScale * (dist / startDist)), 5);
+        } else if (e.touches.length === 1 && scale > 1) {
+          posX = e.touches[0].pageX - startX;
+          posY = e.touches[0].pageY - startY;
+        }
+        updateZoomStyle();
+      }, {passive: false});
+
+      zLayer.addEventListener("touchend", (e) => {
+        if (e.target === zLayer && e.touches.length === 0) zLayer.style.display = "none";
+      });
+
+      function updateZoomStyle() {
+        zImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+      }
+
+      // ---  ---
       function getDBItem(id) {
         return new Promise(resolve => {
           const tx = db.transaction("items", "readonly");
@@ -208,7 +262,7 @@
         tx.objectStore("items").delete(i);
         tx.oncomplete = () => {
           document.getElementById(`memo-${i}`).value = "";
-          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;">未撮影</span>`;
+          document.getElementById(`photo-${i}`).innerHTML = `<span style="color:var(--muted); font-size:0.8rem;"></span>`;
         };
       };
 
@@ -241,7 +295,7 @@
       document.getElementById("cancelSettingsBtn").onclick = () => document.getElementById("settingsLayer").style.display = "none";
 
       document.getElementById("clearAllBtn").onclick = () => {
-        if(confirm("全消去しますか？")) {
+        if(confirm("")) {
           const tx = db.transaction("items", "readwrite");
           tx.objectStore("items").clear();
           tx.oncomplete = () => location.reload();
@@ -267,7 +321,7 @@
           torchBtn.style.display = capabilities.torch ? "flex" : "none";
 
           document.getElementById("cameraLayer").style.display = "block";
-        } catch (e) { alert("カメラ起動失敗"); }
+        } catch (e) { alert(""); }
       };
 
       const stopCamera = () => {
@@ -300,10 +354,13 @@
         const cropH = sBox.height * scaleY;
         const cropX = (video.videoWidth - cropW) / 2;
         const cropY = (video.videoHeight - cropH) / 2;
-        const targetSize = 1200;
+        
+        // : 1800px / Quality 0.85
+        const targetSize = 1800;
         canvas.width = targetSize; canvas.height = targetSize;
         ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetSize, targetSize);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        
         saveDBItem(activeIdx, { photo: dataUrl });
         updatePhotoUI(activeIdx, dataUrl);
         stopCamera();
